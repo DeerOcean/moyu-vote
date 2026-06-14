@@ -1,5 +1,5 @@
 // 摸魚比稿投票 — Google Apps Script Web App
-// 收 POST(一票 append 一列) + GET(回傳全部票的 JSON 給排行用)
+// 收 POST：一票/一個平手/一個否決(veto) append 一列。doGet 回傳全部 JSON。
 // 部署：擴充功能→Apps Script→貼上→部署為網頁應用程式(任何人可存取)
 
 function _sheet() {
@@ -7,7 +7,7 @@ function _sheet() {
   var sh = ss.getSheetByName('votes');
   if (!sh) {
     sh = ss.insertSheet('votes');
-    sh.appendRow(['ts', 'voter', 'winner', 'loser', 'tie', 'pair']);
+    sh.appendRow(['ts', 'voter', 'type', 'winner', 'loser', 'image', 'pair']);
   }
   return sh;
 }
@@ -15,12 +15,14 @@ function _sheet() {
 function doPost(e) {
   try {
     var v = JSON.parse(e.postData.contents);
+    var type = v.type || (v.tie ? 'tie' : 'vote');
     _sheet().appendRow([
       new Date(v.ts || Date.now()),
       v.voter || '',
+      type,
       v.winner || '',
       v.loser || '',
-      v.tie ? 'TIE' : '',
+      v.image || '',            // for veto
       (v.pair || []).join(' | ')
     ]);
     return ContentService.createTextOutput(JSON.stringify({ ok: true }))
@@ -32,14 +34,11 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  var sh = _sheet();
-  var rows = sh.getDataRange().getValues();
+  var rows = _sheet().getDataRange().getValues();
   var out = [];
   for (var i = 1; i < rows.length; i++) {
     var r = rows[i];
-    var o = { ts: new Date(r[0]).getTime(), voter: r[1], pair: String(r[5]).split(' | ') };
-    if (r[4] === 'TIE') { o.tie = true; } else { o.winner = r[2]; o.loser = r[3]; }
-    out.push(o);
+    out.push({ ts: new Date(r[0]).getTime(), voter: r[1], type: r[2], winner: r[3], loser: r[4], image: r[5], pair: String(r[6]).split(' | ') });
   }
   return ContentService.createTextOutput(JSON.stringify(out))
     .setMimeType(ContentService.MimeType.JSON);

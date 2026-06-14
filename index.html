@@ -3,85 +3,112 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>摸魚 mascot 二選一比稿</title>
+<title>幫摸魚選一隻最會耍廢的代言魚</title>
 <style>
-  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--win:#3a9d6b}
+  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--win:#3a9d6b;--veto:#c25b52}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
-  body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
-  header{padding:10px 14px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
-  header h1{font-size:15px;margin:0;flex:1}
-  .count{font-size:12px;color:var(--muted)}
-  .q{text-align:center;font-size:15px;color:var(--muted);padding:10px 12px 4px}
-  main{flex:1;display:flex;flex-direction:column;gap:12px;padding:12px;max-width:880px;margin:0 auto;width:100%}
-  .pair{display:flex;gap:12px;flex:1}
+  body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+  header{padding:9px 14px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  header h1{font-size:14px;margin:0;flex:1;line-height:1.2}
+  .badge{font-size:10px;padding:1px 7px;border-radius:10px;background:#efe6d6;color:#9a7430}
+  .prog{height:6px;background:#ece6d8}
+  .prog>i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+  .q{text-align:center;font-size:14px;color:var(--muted);padding:8px 12px 2px}
+  main{flex:1;display:flex;flex-direction:column;gap:10px;padding:10px 12px;max-width:880px;margin:0 auto;width:100%;min-height:0}
+  .pair{display:flex;gap:10px;flex:1;min-height:0}
   @media(max-width:560px){.pair{flex-direction:column}}
   .pick{flex:1;background:var(--card);border:2px solid var(--line);border-radius:16px;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;padding:10px;cursor:pointer;transition:transform .08s,border-color .12s;min-height:180px;position:relative}
+    align-items:center;justify-content:center;padding:8px;cursor:pointer;transition:transform .08s,border-color .12s;position:relative;min-height:0}
   .pick:active{transform:scale(.97);border-color:var(--accent)}
-  .pick img{max-width:100%;max-height:46vh;object-fit:contain;pointer-events:none}
-  @media(max-width:560px){.pick img{max-height:30vh}}
-  .pickbtn{margin-top:8px;font-size:14px;color:var(--accent);font-weight:600}
-  .controls{display:flex;gap:10px;justify-content:center;padding-bottom:6px}
-  .btn{padding:9px 18px;border:1px solid var(--line);border-radius:24px;background:var(--card);font-size:14px;cursor:pointer;font-family:inherit}
+  .pick img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;flex:1;min-height:0}
+  .pickbtn{margin-top:6px;font-size:13px;color:var(--accent);font-weight:600}
+  .vetobtn{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+    background:#fff;color:var(--veto);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
+  .vetobtn:active{background:var(--veto);color:#fff}
+  .reveal{position:absolute;inset:0;background:rgba(255,253,248,.92);border-radius:14px;display:none;flex-direction:column;
+    align-items:center;justify-content:center;font-size:15px;font-weight:700;text-align:center;padding:10px}
+  .reveal.show{display:flex}
+  .reveal .big{font-size:30px;color:var(--accent)}
+  .controls{display:flex;gap:10px;justify-content:center}
+  .btn{padding:8px 16px;border:1px solid var(--line);border-radius:24px;background:var(--card);font-size:13px;cursor:pointer;font-family:inherit}
   .btn:active{background:#efe9dd}
-  footer{padding:8px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted)}
-  footer a,footer .link{color:var(--accent);cursor:pointer;text-decoration:underline}
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
-  .modal .box{background:var(--card);border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:86vh;overflow:auto}
-  .modal h2{margin:0 0 8px;font-size:17px}
-  .modal p{font-size:13px;color:var(--muted);margin:6px 0 14px}
-  .modal input{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit}
-  .modal .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);width:100%;margin-top:14px;padding:12px}
-  .rank{list-style:none;margin:0;padding:0}
-  .rank li{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
-  .rank img{width:54px;height:54px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--line)}
-  .rank .meta{flex:1;font-size:12px}
-  .rank .elo{font-weight:700;font-variant-numeric:tabular-nums}
-  .rank .sub{color:var(--muted);font-size:11px}
-  .badge{font-size:10px;padding:1px 7px;border-radius:10px;background:#efe6d6;color:#9a7430}
+  footer{padding:7px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted)}
+  footer .link{color:var(--accent);cursor:pointer;text-decoration:underline}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:30}
+  .modal.show{display:flex}
+  .box{background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow:auto;text-align:center}
+  .box h2{margin:0 0 6px;font-size:18px}
+  .box p{font-size:13px;color:var(--muted);margin:6px 0 12px}
+  .box input{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);width:100%;margin-top:12px;padding:12px}
+  .champ{display:flex;gap:12px;align-items:center;text-align:left;background:#fbf6ea;border-radius:12px;padding:10px;margin:8px 0}
+  .champ img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line)}
+  .champ .t{font-size:13px}
+  .champ .t b{font-size:15px}
+  .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 2px;border-bottom:1px solid var(--line)}
+  .rank{list-style:none;margin:8px 0;padding:0}
+  .rank li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
+  .rank img{width:44px;height:44px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid var(--line)}
+  .rank .elo{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
 <header>
-  <h1>摸魚 mascot 二選一</h1>
+  <h1>幫摸魚選一隻最會耍廢的代言魚 🐟</h1>
   <span class="badge" id="mode">本機</span>
-  <span class="count" id="count">0 票</span>
 </header>
-<div class="q" id="q">哪一隻你比較想養 / 想摸頭？</div>
+<div class="prog"><i id="progbar"></i></div>
+<div class="q" id="q">哪一隻你比較想養 / 想摸頭？（點圖選）</div>
 <main>
   <div class="pair">
-    <div class="pick" id="pickL"><img id="imgL" alt=""><div class="pickbtn">選這隻</div></div>
-    <div class="pick" id="pickR"><img id="imgR" alt=""><div class="pickbtn">選這隻</div></div>
+    <div class="pick" id="pickL">
+      <button class="vetobtn" data-side="L" title="太醜，淘汰">✕</button>
+      <img id="imgL" alt=""><div class="pickbtn">選這隻</div>
+      <div class="reveal" id="revL"></div>
+    </div>
+    <div class="pick" id="pickR">
+      <button class="vetobtn" data-side="R" title="太醜，淘汰">✕</button>
+      <img id="imgR" alt=""><div class="pickbtn">選這隻</div>
+      <div class="reveal" id="revR"></div>
+    </div>
   </div>
   <div class="controls">
-    <button class="btn" id="tie">都喜歡 / 平手</button>
-    <button class="btn" id="skip">兩隻都不行 ⏭</button>
+    <button class="btn" id="tie">都喜歡</button>
+    <button class="btn" id="skip">換一組 ⏭</button>
+    <button class="btn" id="resultsBtn">我的結果</button>
   </div>
 </main>
 <footer>
-  <span id="who"></span>
-  <span style="flex:1"></span>
+  <span id="who"></span><span style="flex:1"></span>
   <span class="link" id="changeName">改名</span>
-  <span class="link" id="showResults">看排行</span>
+  <span class="link" id="rankBtn">總排行</span>
 </footer>
 
-<div class="modal" id="nameModal" style="display:none">
+<div class="modal" id="nameModal">
   <div class="box">
-    <h2>歡迎幫忙選摸魚吉祥物 🐟</h2>
-    <p>每次出兩隻，點你比較喜歡的那隻就好（想養／想摸頭的直覺）。先留個暱稱，方便我知道是誰投的。</p>
+    <h2>幫摸魚選吉祥物 🎣</h2>
+    <p>每次出兩隻，點你比較喜歡的（想養／想摸頭的直覺）。覺得某隻太醜，按右上 ✕ 淘汰牠——2 個人嫌就會被踢掉。選滿 20 隻看你的「審美報告」！</p>
     <input id="nameInput" placeholder="你的暱稱" maxlength="20">
     <button class="btn primary" id="nameOk">開始選</button>
   </div>
 </div>
 
-<div class="modal" id="resultModal" style="display:none">
+<div class="modal" id="resultModal">
   <div class="box">
-    <h2>目前排行 <span class="count" id="rCount"></span></h2>
-    <p id="rNote"></p>
+    <h2>你的摸魚審美報告 📋</h2>
+    <div id="champBox"></div>
+    <div id="reportStats"></div>
+    <button class="btn primary" id="shareBtn">分享我的結果 + 拉朋友來選</button>
+    <button class="btn" id="continueBtn" style="margin-top:8px">再選幾隻</button>
+  </div>
+</div>
+
+<div class="modal" id="rankModal">
+  <div class="box">
+    <h2>總排行 <span id="rankSub" style="font-size:12px;color:var(--muted)"></span></h2>
     <ol class="rank" id="rankList"></ol>
-    <button class="btn" id="copyResults" style="margin-top:12px">複製排行文字</button>
-    <button class="btn primary" id="closeResults">繼續投票</button>
+    <button class="btn primary" id="rankClose">關閉</button>
   </div>
 </div>
 
@@ -89,94 +116,127 @@
 const ITEMS = [{"id": "explore__A_pose__belly_rod", "group": "explore", "file": "imgs/explore__A_pose__belly_rod.jpg", "label": "A_pose__belly_rod"}, {"id": "explore__A_pose__boat_doze", "group": "explore", "file": "imgs/explore__A_pose__boat_doze.jpg", "label": "A_pose__boat_doze"}, {"id": "explore__A_pose__curl_ball", "group": "explore", "file": "imgs/explore__A_pose__curl_ball.jpg", "label": "A_pose__curl_ball"}, {"id": "explore__A_pose__faceplant_rock", "group": "explore", "file": "imgs/explore__A_pose__faceplant_rock.jpg", "label": "A_pose__faceplant_rock"}, {"id": "explore__A_pose__hammock_reed", "group": "explore", "file": "imgs/explore__A_pose__hammock_reed.jpg", "label": "A_pose__hammock_reed"}, {"id": "explore__A_pose__head_poke", "group": "explore", "file": "imgs/explore__A_pose__head_poke.jpg", "label": "A_pose__head_poke"}, {"id": "explore__A_pose__hide_fish", "group": "explore", "file": "imgs/explore__A_pose__hide_fish.jpg", "label": "A_pose__hide_fish"}, {"id": "explore__A_pose__hug_fish", "group": "explore", "file": "imgs/explore__A_pose__hug_fish.jpg", "label": "A_pose__hug_fish"}, {"id": "explore__A_pose__lean_rock", "group": "explore", "file": "imgs/explore__A_pose__lean_rock.jpg", "label": "A_pose__lean_rock"}, {"id": "explore__A_pose__log_float", "group": "explore", "file": "imgs/explore__A_pose__log_float.jpg", "label": "A_pose__log_float"}, {"id": "explore__A_pose__meditate", "group": "explore", "file": "imgs/explore__A_pose__meditate.jpg", "label": "A_pose__meditate"}, {"id": "explore__A_pose__mud_slide", "group": "explore", "file": "imgs/explore__A_pose__mud_slide.jpg", "label": "A_pose__mud_slide"}, {"id": "explore__A_pose__peek_bucket", "group": "explore", "file": "imgs/explore__A_pose__peek_bucket.jpg", "label": "A_pose__peek_bucket"}, {"id": "explore__A_pose__ring_float", "group": "explore", "file": "imgs/explore__A_pose__ring_float.jpg", "label": "A_pose__ring_float"}, {"id": "explore__A_pose__rod_nap", "group": "explore", "file": "imgs/explore__A_pose__rod_nap.jpg", "label": "A_pose__rod_nap"}, {"id": "explore__A_pose__roll_back", "group": "explore", "file": "imgs/explore__A_pose__roll_back.jpg", "label": "A_pose__roll_back"}, {"id": "explore__A_pose__rub_paws", "group": "explore", "file": "imgs/explore__A_pose__rub_paws.jpg", "label": "A_pose__rub_paws"}, {"id": "explore__A_pose__sand_bury", "group": "explore", "file": "imgs/explore__A_pose__sand_bury.jpg", "label": "A_pose__sand_bury"}, {"id": "explore__A_pose__sip_cup", "group": "explore", "file": "imgs/explore__A_pose__sip_cup.jpg", "label": "A_pose__sip_cup"}, {"id": "explore__A_pose__soak_bobber", "group": "explore", "file": "imgs/explore__A_pose__soak_bobber.jpg", "label": "A_pose__soak_bobber"}, {"id": "explore__A_pose__tail_sit", "group": "explore", "file": "imgs/explore__A_pose__tail_sit.jpg", "label": "A_pose__tail_sit"}, {"id": "explore__A_pose__towel_wrap", "group": "explore", "file": "imgs/explore__A_pose__towel_wrap.jpg", "label": "A_pose__towel_wrap"}, {"id": "explore__A_pose__trophy_flop", "group": "explore", "file": "imgs/explore__A_pose__trophy_flop.jpg", "label": "A_pose__trophy_flop"}, {"id": "explore__A_pose__victory_wiggle", "group": "explore", "file": "imgs/explore__A_pose__victory_wiggle.jpg", "label": "A_pose__victory_wiggle"}, {"id": "explore__A_pose__yawn_stretch", "group": "explore", "file": "imgs/explore__A_pose__yawn_stretch.jpg", "label": "A_pose__yawn_stretch"}, {"id": "explore__B_species__sp_axolotl", "group": "explore", "file": "imgs/explore__B_species__sp_axolotl.jpg", "label": "B_species__sp_axolotl"}, {"id": "explore__B_species__sp_beaver", "group": "explore", "file": "imgs/explore__B_species__sp_beaver.jpg", "label": "B_species__sp_beaver"}, {"id": "explore__B_species__sp_capybara", "group": "explore", "file": "imgs/explore__B_species__sp_capybara.jpg", "label": "B_species__sp_capybara"}, {"id": "explore__B_species__sp_cat", "group": "explore", "file": "imgs/explore__B_species__sp_cat.jpg", "label": "B_species__sp_cat"}, {"id": "explore__B_species__sp_duckling", "group": "explore", "file": "imgs/explore__B_species__sp_duckling.jpg", "label": "B_species__sp_duckling"}, {"id": "explore__B_species__sp_ferret", "group": "explore", "file": "imgs/explore__B_species__sp_ferret.jpg", "label": "B_species__sp_ferret"}, {"id": "explore__B_species__sp_frog", "group": "explore", "file": "imgs/explore__B_species__sp_frog.jpg", "label": "B_species__sp_frog"}, {"id": "explore__B_species__sp_hamster", "group": "explore", "file": "imgs/explore__B_species__sp_hamster.jpg", "label": "B_species__sp_hamster"}, {"id": "explore__B_species__sp_hermit", "group": "explore", "file": "imgs/explore__B_species__sp_hermit.jpg", "label": "B_species__sp_hermit"}, {"id": "explore__B_species__sp_loach", "group": "explore", "file": "imgs/explore__B_species__sp_loach.jpg", "label": "B_species__sp_loach"}, {"id": "explore__B_species__sp_manatee", "group": "explore", "file": "imgs/explore__B_species__sp_manatee.jpg", "label": "B_species__sp_manatee"}, {"id": "explore__B_species__sp_mudskipper", "group": "explore", "file": "imgs/explore__B_species__sp_mudskipper.jpg", "label": "B_species__sp_mudskipper"}, {"id": "explore__B_species__sp_narwhal", "group": "explore", "file": "imgs/explore__B_species__sp_narwhal.jpg", "label": "B_species__sp_narwhal"}, {"id": "explore__B_species__sp_octopus", "group": "explore", "file": "imgs/explore__B_species__sp_octopus.jpg", "label": "B_species__sp_octopus"}, {"id": "explore__B_species__sp_penguin", "group": "explore", "file": "imgs/explore__B_species__sp_penguin.jpg", "label": "B_species__sp_penguin"}, {"id": "explore__B_species__sp_platypus", "group": "explore", "file": "imgs/explore__B_species__sp_platypus.jpg", "label": "B_species__sp_platypus"}, {"id": "explore__B_species__sp_puffer", "group": "explore", "file": "imgs/explore__B_species__sp_puffer.jpg", "label": "B_species__sp_puffer"}, {"id": "explore__B_species__sp_quokka", "group": "explore", "file": "imgs/explore__B_species__sp_quokka.jpg", "label": "B_species__sp_quokka"}, {"id": "explore__B_species__sp_redpanda", "group": "explore", "file": "imgs/explore__B_species__sp_redpanda.jpg", "label": "B_species__sp_redpanda"}, {"id": "explore__B_species__sp_river_otter", "group": "explore", "file": "imgs/explore__B_species__sp_river_otter.jpg", "label": "B_species__sp_river_otter"}, {"id": "explore__B_species__sp_sea_otter", "group": "explore", "file": "imgs/explore__B_species__sp_sea_otter.jpg", "label": "B_species__sp_sea_otter"}, {"id": "explore__B_species__sp_seal", "group": "explore", "file": "imgs/explore__B_species__sp_seal.jpg", "label": "B_species__sp_seal"}, {"id": "explore__B_species__sp_shiba", "group": "explore", "file": "imgs/explore__B_species__sp_shiba.jpg", "label": "B_species__sp_shiba"}, {"id": "explore__B_species__sp_shrimp", "group": "explore", "file": "imgs/explore__B_species__sp_shrimp.jpg", "label": "B_species__sp_shrimp"}, {"id": "explore__B_species__sp_turtle", "group": "explore", "file": "imgs/explore__B_species__sp_turtle.jpg", "label": "B_species__sp_turtle"}, {"id": "explore__C_color__col_caramel", "group": "explore", "file": "imgs/explore__C_color__col_caramel.jpg", "label": "C_color__col_caramel"}, {"id": "explore__C_color__col_charcoal", "group": "explore", "file": "imgs/explore__C_color__col_charcoal.jpg", "label": "C_color__col_charcoal"}, {"id": "explore__C_color__col_cocoa", "group": "explore", "file": "imgs/explore__C_color__col_cocoa.jpg", "label": "C_color__col_cocoa"}, {"id": "explore__C_color__col_dustyrose", "group": "explore", "file": "imgs/explore__C_color__col_dustyrose.jpg", "label": "C_color__col_dustyrose"}, {"id": "explore__C_color__col_fog", "group": "explore", "file": "imgs/explore__C_color__col_fog.jpg", "label": "C_color__col_fog"}, {"id": "explore__C_color__col_greyblue", "group": "explore", "file": "imgs/explore__C_color__col_greyblue.jpg", "label": "C_color__col_greyblue"}, {"id": "explore__C_color__col_lavender", "group": "explore", "file": "imgs/explore__C_color__col_lavender.jpg", "label": "C_color__col_lavender"}, {"id": "explore__C_color__col_milktea", "group": "explore", "file": "imgs/explore__C_color__col_milktea.jpg", "label": "C_color__col_milktea"}, {"id": "explore__C_color__col_mint", "group": "explore", "file": "imgs/explore__C_color__col_mint.jpg", "label": "C_color__col_mint"}, {"id": "explore__C_color__col_mustard", "group": "explore", "file": "imgs/explore__C_color__col_mustard.jpg", "label": "C_color__col_mustard"}, {"id": "explore__C_color__col_oat", "group": "explore", "file": "imgs/explore__C_color__col_oat.jpg", "label": "C_color__col_oat"}, {"id": "explore__C_color__col_peach", "group": "explore", "file": "imgs/explore__C_color__col_peach.jpg", "label": "C_color__col_peach"}, {"id": "explore__C_color__col_sage", "group": "explore", "file": "imgs/explore__C_color__col_sage.jpg", "label": "C_color__col_sage"}, {"id": "explore__C_color__col_seafoam", "group": "explore", "file": "imgs/explore__C_color__col_seafoam.jpg", "label": "C_color__col_seafoam"}, {"id": "explore__C_color__col_terracotta", "group": "explore", "file": "imgs/explore__C_color__col_terracotta.jpg", "label": "C_color__col_terracotta"}, {"id": "explore__D_outfit__acc_apron", "group": "explore", "file": "imgs/explore__D_outfit__acc_apron.jpg", "label": "D_outfit__acc_apron"}, {"id": "explore__D_outfit__acc_backpack", "group": "explore", "file": "imgs/explore__D_outfit__acc_backpack.jpg", "label": "D_outfit__acc_backpack"}, {"id": "explore__D_outfit__acc_badge", "group": "explore", "file": "imgs/explore__D_outfit__acc_badge.jpg", "label": "D_outfit__acc_badge"}, {"id": "explore__D_outfit__acc_beanie", "group": "explore", "file": "imgs/explore__D_outfit__acc_beanie.jpg", "label": "D_outfit__acc_beanie"}, {"id": "explore__D_outfit__acc_bib", "group": "explore", "file": "imgs/explore__D_outfit__acc_bib.jpg", "label": "D_outfit__acc_bib"}, {"id": "explore__D_outfit__acc_bucket_hold", "group": "explore", "file": "imgs/explore__D_outfit__acc_bucket_hold.jpg", "label": "D_outfit__acc_bucket_hold"}, {"id": "explore__D_outfit__acc_buckethat_beige", "group": "explore", "file": "imgs/explore__D_outfit__acc_buckethat_beige.jpg", "label": "D_outfit__acc_buckethat_beige"}, {"id": "explore__D_outfit__acc_buckethat_mustard", "group": "explore", "file": "imgs/explore__D_outfit__acc_buckethat_mustard.jpg", "label": "D_outfit__acc_buckethat_mustard"}, {"id": "explore__D_outfit__acc_cape_blanket", "group": "explore", "file": "imgs/explore__D_outfit__acc_cape_blanket.jpg", "label": "D_outfit__acc_cape_blanket"}, {"id": "explore__D_outfit__acc_duckring", "group": "explore", "file": "imgs/explore__D_outfit__acc_duckring.jpg", "label": "D_outfit__acc_duckring"}, {"id": "explore__D_outfit__acc_eyemask", "group": "explore", "file": "imgs/explore__D_outfit__acc_eyemask.jpg", "label": "D_outfit__acc_eyemask"}, {"id": "explore__D_outfit__acc_glasses", "group": "explore", "file": "imgs/explore__D_outfit__acc_glasses.jpg", "label": "D_outfit__acc_glasses"}, {"id": "explore__D_outfit__acc_headphones", "group": "explore", "file": "imgs/explore__D_outfit__acc_headphones.jpg", "label": "D_outfit__acc_headphones"}, {"id": "explore__D_outfit__acc_leaf_hat", "group": "explore", "file": "imgs/explore__D_outfit__acc_leaf_hat.jpg", "label": "D_outfit__acc_leaf_hat"}, {"id": "explore__D_outfit__acc_mug_rod", "group": "explore", "file": "imgs/explore__D_outfit__acc_mug_rod.jpg", "label": "D_outfit__acc_mug_rod"}, {"id": "explore__D_outfit__acc_raincoat", "group": "explore", "file": "imgs/explore__D_outfit__acc_raincoat.jpg", "label": "D_outfit__acc_raincoat"}, {"id": "explore__D_outfit__acc_scarf", "group": "explore", "file": "imgs/explore__D_outfit__acc_scarf.jpg", "label": "D_outfit__acc_scarf"}, {"id": "explore__D_outfit__acc_slippers", "group": "explore", "file": "imgs/explore__D_outfit__acc_slippers.jpg", "label": "D_outfit__acc_slippers"}, {"id": "explore__D_outfit__acc_strawhat", "group": "explore", "file": "imgs/explore__D_outfit__acc_strawhat.jpg", "label": "D_outfit__acc_strawhat"}, {"id": "explore__D_outfit__acc_towel_head", "group": "explore", "file": "imgs/explore__D_outfit__acc_towel_head.jpg", "label": "D_outfit__acc_towel_head"}, {"id": "explore__E_styleref__ref_cheeky_round", "group": "explore", "file": "imgs/explore__E_styleref__ref_cheeky_round.jpg", "label": "E_styleref__ref_cheeky_round"}, {"id": "explore__E_styleref__ref_chubby_stripe", "group": "explore", "file": "imgs/explore__E_styleref__ref_chubby_stripe.jpg", "label": "E_styleref__ref_chubby_stripe"}, {"id": "explore__E_styleref__ref_clay", "group": "explore", "file": "imgs/explore__E_styleref__ref_clay.jpg", "label": "E_styleref__ref_clay"}, {"id": "explore__E_styleref__ref_corner_timid", "group": "explore", "file": "imgs/explore__E_styleref__ref_corner_timid.jpg", "label": "E_styleref__ref_corner_timid"}, {"id": "explore__E_styleref__ref_costume_layer", "group": "explore", "file": "imgs/explore__E_styleref__ref_costume_layer.jpg", "label": "E_styleref__ref_costume_layer"}, {"id": "explore__E_styleref__ref_deadpan_warm", "group": "explore", "file": "imgs/explore__E_styleref__ref_deadpan_warm.jpg", "label": "E_styleref__ref_deadpan_warm"}, {"id": "explore__E_styleref__ref_derp_white", "group": "explore", "file": "imgs/explore__E_styleref__ref_derp_white.jpg", "label": "E_styleref__ref_derp_white"}, {"id": "explore__E_styleref__ref_hero_signature", "group": "explore", "file": "imgs/explore__E_styleref__ref_hero_signature.jpg", "label": "E_styleref__ref_hero_signature"}, {"id": "explore__E_styleref__ref_limp_drape", "group": "explore", "file": "imgs/explore__E_styleref__ref_limp_drape.jpg", "label": "E_styleref__ref_limp_drape"}, {"id": "explore__E_styleref__ref_long_blob", "group": "explore", "file": "imgs/explore__E_styleref__ref_long_blob.jpg", "label": "E_styleref__ref_long_blob"}, {"id": "explore__E_styleref__ref_minimal_dot", "group": "explore", "file": "imgs/explore__E_styleref__ref_minimal_dot.jpg", "label": "E_styleref__ref_minimal_dot"}, {"id": "explore__E_styleref__ref_nomouth_silent", "group": "explore", "file": "imgs/explore__E_styleref__ref_nomouth_silent.jpg", "label": "E_styleref__ref_nomouth_silent"}, {"id": "explore__E_styleref__ref_plush_relaxed", "group": "explore", "file": "imgs/explore__E_styleref__ref_plush_relaxed.jpg", "label": "E_styleref__ref_plush_relaxed"}, {"id": "explore__E_styleref__ref_softvinyl", "group": "explore", "file": "imgs/explore__E_styleref__ref_softvinyl.jpg", "label": "E_styleref__ref_softvinyl"}, {"id": "explore__E_styleref__ref_tiny_bigeye", "group": "explore", "file": "imgs/explore__E_styleref__ref_tiny_bigeye.jpg", "label": "E_styleref__ref_tiny_bigeye"}, {"id": "seaotter__F_seaotter__glossyblack_flop", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__glossyblack_flop.jpg", "label": "F_seaotter__glossyblack_flop"}, {"id": "seaotter__F_seaotter__gunmetal_hero", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__gunmetal_hero.jpg", "label": "F_seaotter__gunmetal_hero"}, {"id": "seaotter__F_seaotter__inkblack_soak", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__inkblack_soak.jpg", "label": "F_seaotter__inkblack_soak"}, {"id": "seaotter__F_seaotter__realotter_silverblack", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__realotter_silverblack.jpg", "label": "F_seaotter__realotter_silverblack"}, {"id": "seaotter__F_seaotter__silver_highcontrast", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__silver_highcontrast.jpg", "label": "F_seaotter__silver_highcontrast"}, {"id": "seaotter__F_seaotter__silver_rodnap", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__silver_rodnap.jpg", "label": "F_seaotter__silver_rodnap"}, {"id": "seaotter__F_seaotter__slate_headpoke", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__slate_headpoke.jpg", "label": "F_seaotter__slate_headpoke"}, {"id": "seaotter__F_seaotter__wetblack_logfloat", "group": "seaotter", "file": "imgs/seaotter__F_seaotter__wetblack_logfloat.jpg", "label": "F_seaotter__wetblack_logfloat"}, {"id": "pitch__sp_egret_sleep", "group": "pitch", "file": "imgs/pitch__sp_egret_sleep.jpg", "label": "sp_egret_sleep"}, {"id": "pitch__sp_egret_stand", "group": "pitch", "file": "imgs/pitch__sp_egret_stand.jpg", "label": "sp_egret_stand"}, {"id": "pitch__sp_otter_seapalette", "group": "pitch", "file": "imgs/pitch__sp_otter_seapalette.jpg", "label": "sp_otter_seapalette"}, {"id": "pitch__sp_shoebill", "group": "pitch", "file": "imgs/pitch__sp_shoebill.jpg", "label": "sp_shoebill"}, {"id": "v17__otter_v17_logfloat", "group": "v17", "file": "imgs/v17__otter_v17_logfloat.jpg", "label": "otter_v17_logfloat"}, {"id": "v17__otter_v17_rodnap", "group": "v17", "file": "imgs/v17__otter_v17_rodnap.jpg", "label": "otter_v17_rodnap"}, {"id": "v17__otter_v17_soak", "group": "v17", "file": "imgs/v17__otter_v17_soak.jpg", "label": "otter_v17_soak"}, {"id": "v17__otter_v17_trophyflop", "group": "v17", "file": "imgs/v17__otter_v17_trophyflop.jpg", "label": "otter_v17_trophyflop"}];
 const byId = Object.fromEntries(ITEMS.map(x=>[x.id,x]));
 const params = new URLSearchParams(location.search);
-const API = params.get("api") || (window.VOTE_API || null);   // central store base URL, else local
-const LKEY = "moyu_pairwise_v1";
+const API = params.get("api") || (window.VOTE_API || null);
+const GOAL = 20;
 let voter = localStorage.getItem("moyu_voter") || "";
-let localVotes = JSON.parse(localStorage.getItem(LKEY) || "[]");
+let localVotes = JSON.parse(localStorage.getItem("moyu_pairwise_v2") || "[]");
+let myVetoes = new Set(JSON.parse(localStorage.getItem("moyu_myvetoes") || "[]"));
+let STATS = {perImage:{}, vetoedOut:[]};
+let pickCount = localVotes.filter(v=>!v.tie).length;
 document.getElementById("mode").textContent = API ? "連線" : "本機";
 
-function saveLocal(){ localStorage.setItem(LKEY, JSON.stringify(localVotes)); }
-function myCount(){ return localVotes.length; }
-function refreshCount(){ document.getElementById("count").textContent = myCount()+" 票"; document.getElementById("who").textContent = voter?("嗨 "+voter):""; }
+function saveLocal(){ localStorage.setItem("moyu_pairwise_v2", JSON.stringify(localVotes)); localStorage.setItem("moyu_myvetoes", JSON.stringify([...myVetoes])); }
+function $(id){ return document.getElementById(id); }
+function refresh(){ $("who").textContent = voter?("嗨 "+voter):""; $("progbar").style.width=Math.min(100,pickCount/GOAL*100)+"%"; }
 
-async function sendVote(v){
-  localVotes.push(v); saveLocal(); refreshCount();
-  if(API){ try{ await fetch(API, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(v)}); }catch(e){} }
+async function loadStats(){
+  try{ const r=await fetch("stats.json?t="+Date.now()); const d=await r.json(); if(d&&d.perImage){ STATS=d; } }catch(e){}
 }
 
-// pairing: prefer items with fewer local appearances, avoid immediate repeat
-const seenCount = {}; ITEMS.forEach(x=>seenCount[x.id]=0);
-localVotes.forEach(v=>{ (v.pair||[]).forEach(id=>{ if(id in seenCount) seenCount[id]++; }); });
-let lastPair = [];
-function pickItem(exclude){
-  const pool = ITEMS.filter(x=>!exclude.includes(x.id));
-  const min = Math.min(...pool.map(x=>seenCount[x.id]));
-  const cand = pool.filter(x=>seenCount[x.id]<=min+1);
+async function post(obj){
+  if(API){ try{ await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(obj)}); }catch(e){} }
+}
+
+// active pool: drop globally-vetoed (>=2 distinct) and my own vetoes
+function activePool(){
+  const out = new Set([...(STATS.vetoedOut||[]), ...myVetoes]);
+  return ITEMS.filter(x=>!out.has(x.id));
+}
+const seen = {}; ITEMS.forEach(x=>seen[x.id]=0);
+localVotes.forEach(v=>(v.pair||[]).forEach(id=>{ if(id in seen) seen[id]++; }));
+let lastPair=[], curL, curR;
+function pickItem(excl){
+  const pool=activePool().filter(x=>!excl.includes(x.id));
+  if(!pool.length) return ITEMS[Math.floor(Math.random()*ITEMS.length)];
+  const min=Math.min(...pool.map(x=>seen[x.id]));
+  const cand=pool.filter(x=>seen[x.id]<=min+1);
   return cand[Math.floor(Math.random()*cand.length)];
 }
-let curL, curR;
 function nextPair(){
-  curL = pickItem(lastPair);
-  curR = pickItem([curL.id, ...lastPair]);
-  lastPair = [curL.id, curR.id];
-  document.getElementById("imgL").src = curL.file;
-  document.getElementById("imgR").src = curR.file;
+  $("revL").classList.remove("show"); $("revR").classList.remove("show");
+  curL=pickItem(lastPair); curR=pickItem([curL.id,...lastPair]); lastPair=[curL.id,curR.id];
+  $("imgL").src=curL.file; $("imgR").src=curR.file;
 }
-function record(winner, loser, tie){
-  const v = {voter, ts:Date.now(), pair:[curL.id,curR.id]};
-  if(tie){ v.tie=true; } else { v.winner=winner; v.loser=loser; }
-  v.pair.forEach(id=>seenCount[id]++);
-  sendVote(v); nextPair();
+function winrate(id){ const s=STATS.perImage[id]; if(!s||!(s.w+s.l)) return null; return Math.round(s.w/(s.w+s.l)*100); }
+function showReveal(side,id){
+  const wr=winrate(id); const el=$(side==="L"?"revL":"revR");
+  let msg;
+  if(wr===null){ msg='<div class="big">👍</div>你的眼光<br>（還沒有大家的數據）'; }
+  else if(wr>=55){ msg='<div class="big">'+wr+'%</div>大家也愛這隻<br>你跟主流一致 👍'; }
+  else if(wr<=45){ msg='<div class="big">'+wr+'%</div>你是少數派 😏<br>獨到眼光'; }
+  else { msg='<div class="big">'+wr+'%</div>勢均力敵的一隻'; }
+  el.innerHTML=msg; el.classList.add("show");
+  setTimeout(()=>{ el.classList.remove("show"); nextPair(); }, 900);
 }
-document.getElementById("pickL").onclick=()=>record(curL.id,curR.id,false);
-document.getElementById("pickR").onclick=()=>record(curR.id,curL.id,false);
-document.getElementById("tie").onclick=()=>record(null,null,true);
-document.getElementById("skip").onclick=()=>{ lastPair=[]; nextPair(); };
+function recordPick(winner,loser){
+  pickCount++; const v={voter,ts:Date.now(),pair:[curL.id,curR.id],winner,loser};
+  v.pair.forEach(id=>seen[id]++); localVotes.push(v); saveLocal(); post(v); refresh();
+  showReveal(winner===curL.id?"L":"R", winner);
+  if(pickCount===GOAL) setTimeout(openResults, 1100);
+}
+function recordTie(){ const v={voter,ts:Date.now(),pair:[curL.id,curR.id],tie:true}; localVotes.push(v); saveLocal(); post(v); nextPair(); }
+function recordVeto(side){
+  const id=(side==="L"?curL:curR).id; myVetoes.add(id); saveLocal();
+  post({voter,ts:Date.now(),type:"veto",image:id});
+  lastPair=[]; nextPair();
+}
+$("pickL").onclick=e=>{ if(e.target.classList.contains("vetobtn"))return; recordPick(curL.id,curR.id); };
+$("pickR").onclick=e=>{ if(e.target.classList.contains("vetobtn"))return; recordPick(curR.id,curL.id); };
+document.querySelectorAll(".vetobtn").forEach(b=>b.onclick=e=>{ e.stopPropagation(); recordVeto(b.dataset.side); });
+$("tie").onclick=recordTie;
+$("skip").onclick=()=>{ lastPair=[]; nextPair(); };
+$("resultsBtn").onclick=openResults;
 
-// name modal
-function askName(){ document.getElementById("nameInput").value=voter; document.getElementById("nameModal").style.display="flex"; }
-document.getElementById("nameOk").onclick=()=>{
-  const n=document.getElementById("nameInput").value.trim()||"匿名"+Math.floor(Math.random()*1000);
-  voter=n; localStorage.setItem("moyu_voter",n); document.getElementById("nameModal").style.display="none"; refreshCount();
+// personal report
+function myElo(){
+  const R={}; ITEMS.forEach(x=>R[x.id]=1000); const g={}; ITEMS.forEach(x=>g[x.id]=0);
+  localVotes.forEach(v=>{ if(v.tie||!v.winner)return; const a=v.winner,b=v.loser; if(!(a in R)||!(b in R))return;
+    const ea=1/(1+Math.pow(10,(R[b]-R[a])/400)); R[a]+=24*(1-ea); R[b]+=24*(0-(1-ea)); g[a]++; g[b]++; });
+  return ITEMS.map(x=>({...x,elo:Math.round(R[x.id]),g:g[x.id]})).filter(x=>x.g>0).sort((a,b)=>b.elo-a.elo);
+}
+function openResults(){
+  const rank=myElo(); if(!rank.length){ alert("先選個幾隻再看結果～"); return; }
+  const champ=rank[0];
+  $("champBox").innerHTML='<div class="champ"><img src="'+champ.file+'"><div class="t">你心中的冠軍<br><b>'+champ.label+'</b><br><span style="color:var(--muted)">畫風：'+champ.style+'</span></div></div>';
+  // preferred style = most frequent style among my winners
+  const styleCnt={}; localVotes.forEach(v=>{ if(v.winner&&byId[v.winner]){ const s=byId[v.winner].style; styleCnt[s]=(styleCnt[s]||0)+1; } });
+  const prefStyle=Object.entries(styleCnt).sort((a,b)=>b[1]-a[1])[0];
+  // alignment with crowd
+  let aligned=0,total=0; localVotes.forEach(v=>{ if(!v.winner)return; const wr=winrate(v.winner); if(wr!==null){ total++; if(wr>=50)aligned++; } });
+  const align = total? Math.round(aligned/total*100) : null;
+  $("reportStats").innerHTML =
+    '<div class="stat-row"><span>你投了</span><b>'+localVotes.filter(v=>v.winner).length+' 票</b></div>'+
+    (prefStyle?'<div class="stat-row"><span>你最偏好的畫風</span><b>'+prefStyle[0]+'</b></div>':'')+
+    (align!==null?'<div class="stat-row"><span>跟大家的契合度</span><b>'+align+'%</b></div>':'<div class="stat-row"><span>契合度</span><b>等更多人投票</b></div>')+
+    '<div class="stat-row"><span>你淘汰了</span><b>'+myVetoes.size+' 隻太醜的</b></div>';
+  $("resultModal").classList.add("show");
+}
+$("continueBtn").onclick=()=>$("resultModal").classList.remove("show");
+$("shareBtn").onclick=async()=>{
+  const rank=myElo(); const champ=rank[0];
+  const url=location.origin+location.pathname;
+  const text="我幫摸魚選了一隻代言魚，我的冠軍是「"+(champ?champ.label:"???")+"」🐟 換你選選看你的是哪隻：";
+  try{ if(navigator.share){ await navigator.share({title:"摸魚比稿",text,url}); return; } }catch(e){}
+  try{ await navigator.clipboard.writeText(text+" "+url); alert("已複製分享文字+連結，貼到群組拉朋友來選！"); }catch(e){ prompt("複製這段分享：", text+" "+url); }
 };
-document.getElementById("changeName").onclick=askName;
 
-// results: Elo over all votes (local + remote if available)
-async function allVotes(){
-  let votes = localVotes.slice();
-  if(API){ try{ const r=await fetch(API); const d=await r.json(); if(Array.isArray(d)) votes=d; }catch(e){} }
-  return votes;
-}
-function computeElo(votes){
-  const R={}; ITEMS.forEach(x=>R[x.id]=1000); const games={}; ITEMS.forEach(x=>games[x.id]=0);
-  votes.forEach(v=>{
-    if(v.tie && v.pair){ const[a,b]=v.pair; if(!(a in R)||!(b in R))return; upd(a,b,0.5); upd(b,a,0.5); games[a]++;games[b]++; return; }
-    if(v.winner && v.loser && (v.winner in R) && (v.loser in R)){ upd(v.winner,v.loser,1); upd(v.loser,v.winner,0); games[v.winner]++;games[v.loser]++; }
-  });
-  function upd(p,o,s){ const ea=1/(1+Math.pow(10,(R[o]-R[p])/400)); R[p]=R[p]+24*(s-ea); }
-  return ITEMS.map(x=>({...x,elo:Math.round(R[x.id]),games:games[x.id]})).sort((a,b)=>b.elo-a.elo);
-}
-async function showResults(){
-  const votes=await allVotes(); const rank=computeElo(votes).filter(x=>x.games>0);
-  document.getElementById("rCount").textContent="("+votes.length+" 票)";
-  document.getElementById("rNote").textContent = API? "已彙整所有人的票（Elo 排序）。" : "目前只統計你這台裝置的票。";
-  const ol=document.getElementById("rankList"); ol.innerHTML="";
-  rank.slice(0,40).forEach((x,i)=>{ const li=document.createElement("li");
-    li.innerHTML='<b style="width:22px;text-align:right">'+(i+1)+'</b><img src="'+x.file+'"><div class="meta"><div>'+x.label+'</div><div class="sub">'+x.group+' · '+x.games+' 場</div></div><div class="elo">'+x.elo+'</div>';
-    ol.appendChild(li); });
-  window._rankCache=rank;
-  document.getElementById("resultModal").style.display="flex";
-}
-document.getElementById("showResults").onclick=showResults;
-document.getElementById("closeResults").onclick=()=>document.getElementById("resultModal").style.display="none";
-document.getElementById("copyResults").onclick=()=>{
-  const t=(window._rankCache||[]).filter(x=>x.games>0).map((x,i)=>(i+1)+". "+x.label+" ("+x.elo+", "+x.games+"場)").join("\n");
-  navigator.clipboard.writeText(t).then(()=>alert("已複製排行"));
+// global ranking (from stats.json)
+$("rankBtn").onclick=()=>{
+  const rank=ITEMS.map(x=>{ const s=STATS.perImage[x.id]||{w:0,l:0}; const n=s.w+s.l; return {...x,n,wr:n?s.w/n:0}; })
+    .filter(x=>x.n>0).sort((a,b)=>b.wr-a.wr).slice(0,30);
+  $("rankSub").textContent = rank.length? "（依大家投票勝率）" : "（還沒有彙整數據）";
+  $("rankList").innerHTML = rank.map((x,i)=>'<li><b style="width:20px">'+(i+1)+'</b><img src="'+x.file+'"><span>'+x.label+'<br><span style="color:var(--muted)">'+x.style+' · '+x.n+'場</span></span><span class="elo">'+Math.round(x.wr*100)+'%</span></li>').join("") || '<p style="color:var(--muted)">等我彙整大家的票後更新。</p>';
+  $("rankModal").classList.add("show");
 };
+$("rankClose").onclick=()=>$("rankModal").classList.remove("show");
+
+// name
+function askName(){ $("nameInput").value=voter; $("nameModal").classList.add("show"); }
+$("nameOk").onclick=()=>{ voter=($("nameInput").value.trim())||("匿名"+Math.floor(Math.random()*1000)); localStorage.setItem("moyu_voter",voter); $("nameModal").classList.remove("show"); refresh(); };
+$("changeName").onclick=askName;
 
 // boot
-refreshCount(); nextPair();
-if(!voter) askName();
+(async()=>{ await loadStats(); refresh(); nextPair(); if(!voter) askName(); })();
 </script>
 </body>
 </html>
