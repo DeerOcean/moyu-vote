@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>丟一句摸魚進池子</title>
+<style>
+  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--ok:#3a9d6b}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;min-height:100vh;font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+  header{padding:11px 16px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  header h1{font-size:16px;margin:0;flex:1}
+  .badge{font-size:10px;padding:1px 7px;border-radius:10px;background:#efe6d6;color:#9a7430}
+  main{flex:1;max-width:540px;margin:0 auto;width:100%;padding:16px}
+  .intro{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+  label.fld{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+  .types{display:flex;gap:8px;flex-wrap:wrap}
+  .types button{flex:1;min-width:120px;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);font-family:inherit;font-size:13px;cursor:pointer}
+  .types button.on{border-color:var(--accent);background:#fbf2dd;color:#9a7430;font-weight:700}
+  .types button small{display:block;color:var(--muted);font-weight:400;font-size:11px;margin-top:2px}
+  textarea,input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font-size:16px;font-family:inherit;background:#fffef9}
+  textarea{min-height:96px;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--accent)}
+  .count{font-size:11px;color:var(--muted);text-align:right;margin-top:3px}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .sub{margin-top:18px;width:100%;padding:13px;border:none;border-radius:24px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+  .sub:disabled{opacity:.4}
+  .done{text-align:center;padding:30px 10px}
+  .done .big{font-size:40px}
+  .done h2{font-size:18px;margin:10px 0 6px}
+  .done p{font-size:13px;color:var(--muted)}
+  .linkrow{margin-top:18px;display:flex;gap:10px;justify-content:center;font-size:13px}
+  .linkrow a{color:var(--accent)}
+  footer{padding:10px;text-align:center;font-size:12px;color:var(--muted)}
+  footer a{color:var(--accent)}
+  .mycount{font-size:12px;color:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <h1>丟一句摸魚進池子 🐟</h1>
+  <span class="badge" id="mode">本機</span>
+</header>
+<main id="form">
+  <div class="intro">
+    你平常在 Threads/IG 會按讚的那種摸魚金句、上班偷時間的歪招、或一隻魚會講的廢話——丟進來。<br>
+    被採用的會進遊戲，掛上你的名字。<span class="mycount" id="mycount"></span>
+  </div>
+
+  <label class="fld">你要丟哪種？</label>
+  <div class="types" id="types">
+    <button data-t="語錄" class="on">摸魚語錄<small>有摸魚魂的一句話</small></button>
+    <button data-t="技巧">現實摸魚技巧<small>上班偷時間的歪招</small></button>
+    <button data-t="口頭禪">魚的口頭禪<small>一隻魚會說的廢話</small></button>
+  </div>
+
+  <label class="fld" for="txt">內容</label>
+  <textarea id="txt" maxlength="140" placeholder="例：我不是在發呆，我是在讓腦袋休耕。"></textarea>
+  <div class="count"><span id="c">0</span>/140</div>
+
+  <label class="fld" for="nick">你的暱稱（採用時署名用，免綁帳號）</label>
+  <input id="nick" maxlength="20" placeholder="例：摸魚大師阿明">
+  <div class="hint">不用 Discord、不用密碼。留個名字就好。</div>
+
+  <button class="sub" id="send" disabled>丟進池子</button>
+  <div class="linkrow"><a href="index.html">→ 改去幫忙選吉祥物</a></div>
+</main>
+
+<div id="thanks" class="done" style="display:none">
+  <div class="big">🎣</div>
+  <h2>收到了，你的摸魚之魂已歸檔</h2>
+  <p id="thankmsg"></p>
+  <button class="sub" id="again" style="max-width:240px;margin:18px auto 0">再丟一句</button>
+  <div class="linkrow">
+    <a href="#" id="share">分享拉朋友一起丟</a> ·
+    <a href="index.html">幫忙選吉祥物</a>
+  </div>
+</div>
+
+<footer>摸魚人生 · 大家一起摸 · <a href="index.html">吉祥物投票</a></footer>
+
+<script>
+const params=new URLSearchParams(location.search);
+const API=params.get("api")||(window.VOTE_API||null);
+document.getElementById("mode").textContent=API?"連線":"本機";
+let subtype="語錄";
+let mine=JSON.parse(localStorage.getItem("moyu_submits")||"[]");
+let nick=localStorage.getItem("moyu_voter")||"";
+document.getElementById("nick").value=nick;
+function $(i){return document.getElementById(i);}
+function refreshMine(){ $("mycount").textContent = mine.length?("你已丟了 "+mine.length+" 句。"):""; }
+refreshMine();
+
+document.querySelectorAll("#types button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#types button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); subtype=b.dataset.t;
+});
+const txt=$("txt"), send=$("send");
+function validate(){ send.disabled = txt.value.trim().length<2; $("c").textContent=txt.value.length; }
+txt.oninput=validate;
+
+send.onclick=async()=>{
+  const text=txt.value.trim(); if(text.length<2) return;
+  nick=($("nick").value.trim())||("匿名"+Math.floor(Math.random()*1000));
+  localStorage.setItem("moyu_voter",nick);
+  const rec={type:"submission",subtype,text,voter:nick,ts:Date.now()};
+  mine.push(rec); localStorage.setItem("moyu_submits",JSON.stringify(mine));
+  if(API){ try{ await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(rec)}); }catch(e){} }
+  const msgs=["寫得不錯，等大家來評分。","這句有料，進候選池了。","已歸檔。希望它能混進遊戲裡。","收下了，你的廢話很有價值。"];
+  $("thankmsg").textContent = msgs[Math.floor(Math.random()*msgs.length)] + "（你的暱稱："+nick+"）";
+  $("form").style.display="none"; $("thanks").style.display="block";
+};
+$("again").onclick=()=>{ txt.value=""; validate(); $("thanks").style.display="none"; $("form").style.display="block"; refreshMine(); };
+$("share").onclick=async(e)=>{ e.preventDefault();
+  const url=location.origin+location.pathname; const t="我在幫「摸魚人生」丟摸魚語錄，你也來丟一句你最得意的偷懶心法：";
+  try{ if(navigator.share){ await navigator.share({title:"摸魚投稿",text:t,url}); return; } }catch(_){}
+  try{ await navigator.clipboard.writeText(t+" "+url); alert("已複製分享文字+連結"); }catch(_){ prompt("複製分享：",t+" "+url); }
+};
+validate();
+</script>
+</body>
+</html>
