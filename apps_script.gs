@@ -15,6 +15,9 @@ function doPost(e) {
     if (v.type === 'submission') {
       _sheet('submissions', ['ts', 'voter', 'subtype', 'text', 'status'])
         .appendRow([new Date(v.ts || Date.now()), v.voter || '', v.subtype || '', v.text || '', '']);
+    } else if (v.type && v.type.indexOf('quote') === 0) {
+      _sheet('quote_votes', ['ts', 'voter', 'type', 'winner', 'loser', 'quote', 'pair'])
+        .appendRow([new Date(v.ts || Date.now()), v.voter || '', v.type, v.winner || '', v.loser || '', v.quote || '', (v.pair || []).join(' | ')]);
     } else {
       var type = v.type || (v.tie ? 'tie' : 'vote');
       _sheet('votes', ['ts', 'voter', 'type', 'winner', 'loser', 'image', 'pair'])

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>哪句比較有摸魚魂</title>
+<style>
+  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--veto:#c25b52;--ok:#3a9d6b}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+  header{padding:10px 15px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  header h1{font-size:15px;margin:0;flex:1}
+  .badge{font-size:10px;padding:1px 7px;border-radius:10px;background:#efe6d6;color:#9a7430}
+  .prog{height:6px;background:#ece6d8}.prog>i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+  .q{text-align:center;font-size:14px;color:var(--muted);padding:9px 12px 2px}
+  main{flex:1;display:flex;flex-direction:column;gap:12px;padding:12px;max-width:760px;margin:0 auto;width:100%;min-height:0}
+  .pair{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
+  .pick{flex:1;background:var(--card);border:2px solid var(--line);border-radius:16px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:16px;cursor:pointer;transition:transform .08s,border-color .12s;position:relative;min-height:0}
+  .pick:active{transform:scale(.99);border-color:var(--accent)}
+  .pick .t{font-size:clamp(16px,4.6vw,21px);line-height:1.5;text-align:center}
+  .cardfoot{margin-top:10px}
+  .vetobtn{border:1.5px solid var(--veto);background:#fff;color:var(--veto);font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;font-family:inherit}
+  .vetobtn:active{background:var(--veto);color:#fff}
+  .vs{text-align:center;font-size:12px;color:var(--muted);font-weight:700}
+  .controls{display:flex;gap:10px;justify-content:center}
+  .btn{padding:8px 16px;border:1px solid var(--line);border-radius:24px;background:var(--card);font-size:13px;cursor:pointer;font-family:inherit}
+  footer{padding:7px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted)}
+  footer a,.link{color:var(--accent);cursor:pointer;text-decoration:underline}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:30}
+  .modal.show{display:flex}
+  .box{background:var(--card);border-radius:18px;padding:20px;max-width:460px;width:100%;max-height:90vh;overflow:auto;text-align:center}
+  .box h2{margin:0 0 8px;font-size:18px}.box p{font-size:13px;color:var(--muted)}
+  .box input{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);width:100%;margin-top:12px;padding:12px}
+  .rank{list-style:none;margin:8px 0;padding:0;text-align:left}
+  .rank li{padding:7px 4px;border-bottom:1px solid var(--line);font-size:14px;display:flex;gap:8px}
+  .rank .src{font-size:10px;padding:1px 6px;border-radius:8px;flex:none;height:fit-content}
+  .src.ai{background:#eef;color:#55a}.src.real{background:#efe6d6;color:#9a7430}
+  .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 2px;border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>哪句比較有摸魚魂？🐟</h1><span class="badge" id="mode">本機</span>
+</header>
+<div class="prog"><i id="pb"></i></div>
+<div class="q">點你覺得比較有摸魚魂、比較好笑的那句</div>
+<main>
+  <div class="pair">
+    <div class="pick" id="pA"><div class="t" id="tA"></div><div class="cardfoot"><button class="vetobtn" data-s="A">🥚 這句太弱</button></div></div>
+    <div class="vs">VS</div>
+    <div class="pick" id="pB"><div class="t" id="tB"></div><div class="cardfoot"><button class="vetobtn" data-s="B">🥚 這句太弱</button></div></div>
+  </div>
+  <div class="controls">
+    <button class="btn" id="tie">差不多</button>
+    <button class="btn" id="skip">換一組 ⏭</button>
+    <button class="btn" id="res">我的結果</button>
+  </div>
+</main>
+<footer>
+  <span id="who"></span><span style="flex:1"></span>
+  <a href="submit.html">投稿語錄</a><a href="index.html">選吉祥物</a><span class="link" id="rename">改名</span>
+</footer>
+
+<div class="modal" id="nameM"><div class="box">
+  <h2>幫摸魚語錄評分 ✍️</h2>
+  <p>每次出兩句，點你比較想轉發、比較有摸魚魂的那句。太弱的按「太弱」淘汰。選滿 20 組看你的品味報告。</p>
+  <input id="nameI" placeholder="你的暱稱" maxlength="20"><button class="btn primary" id="nameOk">開始</button>
+</div></div>
+
+<div class="modal" id="resM"><div class="box">
+  <h2>你的摸魚語錄品味 📋</h2>
+  <div id="report"></div>
+  <h2 style="font-size:15px;margin-top:14px">你選出的前幾句</h2>
+  <ol class="rank" id="rank"></ol>
+  <button class="btn primary" id="resClose">繼續評</button>
+</div></div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const API=params.get("api")||(window.VOTE_API||null);
+const GOAL=20;
+let QUOTES=[], byId={}, voter=localStorage.getItem("moyu_voter")||"";
+let votes=JSON.parse(localStorage.getItem("moyu_qvotes")||"[]");
+let myVeto=new Set(JSON.parse(localStorage.getItem("moyu_qveto")||"[]"));
+let pickN=votes.filter(v=>v.winner).length;
+function $(i){return document.getElementById(i);}
+$("mode").textContent=API?"連線":"本機";
+function save(){localStorage.setItem("moyu_qvotes",JSON.stringify(votes));localStorage.setItem("moyu_qveto",JSON.stringify([...myVeto]));}
+function refresh(){$("who").textContent=voter?("嗨 "+voter):"";$("pb").style.width=Math.min(100,pickN/GOAL*100)+"%";}
+async function post(o){if(API){try{await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(o)});}catch(e){}}}
+
+const seen={};
+function pool(){return QUOTES.filter(q=>!myVeto.has(q.id));}
+function pick(excl){const p=pool().filter(q=>!excl.includes(q.id));if(!p.length)return QUOTES[0];
+  const mn=Math.min(...p.map(q=>seen[q.id]||0));const c=p.filter(q=>(seen[q.id]||0)<=mn+1);return c[Math.floor(Math.random()*c.length)];}
+let cA,cB,last=[];
+function next(){cA=pick(last);cB=pick([cA.id,...last]);last=[cA.id,cB.id];$("tA").textContent=cA.text;$("tB").textContent=cB.text;}
+function rec(w,l){pickN++;const v={type:"quote-vote",voter,ts:Date.now(),winner:w,loser:l};seen[w]=(seen[w]||0)+1;seen[l]=(seen[l]||0)+1;votes.push(v);save();post(v);refresh();
+  if(pickN>=GOAL && pickN%GOAL===0)setTimeout(openRes,250);next();}
+$("pA").onclick=e=>{if(e.target.classList.contains("vetobtn"))return;rec(cA.id,cB.id);};
+$("pB").onclick=e=>{if(e.target.classList.contains("vetobtn"))return;rec(cB.id,cA.id);};
+document.querySelectorAll(".vetobtn").forEach(b=>b.onclick=e=>{e.stopPropagation();const q=(b.dataset.s==="A"?cA:cB);myVeto.add(q.id);save();post({type:"quote-veto",voter,ts:Date.now(),quote:q.id});last=[];next();});
+$("tie").onclick=()=>{votes.push({type:"quote-tie",voter,ts:Date.now(),pair:[cA.id,cB.id]});save();last=[];next();};
+$("skip").onclick=()=>{last=[];next();};
+$("res").onclick=openRes;
+
+function elo(){const R={};QUOTES.forEach(q=>R[q.id]=1000);const g={};QUOTES.forEach(q=>g[q.id]=0);
+  votes.forEach(v=>{if(!v.winner)return;const a=v.winner,b=v.loser;if(!(a in R)||!(b in R))return;const ea=1/(1+Math.pow(10,(R[b]-R[a])/400));R[a]+=24*(1-ea);R[b]-=24*(1-ea);g[a]++;g[b]++;});
+  return QUOTES.map(q=>({...q,elo:Math.round(R[q.id]),g:g[q.id]})).filter(q=>q.g>0).sort((a,b)=>b.elo-a.elo);}
+function openRes(){const r=elo();if(!r.length){alert("先評個幾組～");return;}
+  const regC={},srcC={ai:0,real:0};votes.forEach(v=>{if(v.winner&&byId[v.winner]){const q=byId[v.winner];regC[q.reg]=(regC[q.reg]||0)+1;srcC[q.source]=(srcC[q.source]||0)+1;}});
+  const topReg=Object.entries(regC).sort((a,b)=>b[1]-a[1])[0];
+  $("report").innerHTML='<div class="stat-row"><span>你評了</span><b>'+votes.filter(v=>v.winner).length+' 組</b></div>'+
+    (topReg?'<div class="stat-row"><span>你最買單的類型</span><b>'+topReg[0]+'</b></div>':'')+
+    '<div class="stat-row"><span>你選的句子來源</span><b>真語料 '+(srcC.real||0)+' · AI '+(srcC.ai||0)+'</b></div>'+
+    '<div class="stat-row"><span>你淘汰了</span><b>'+myVeto.size+' 句太弱的</b></div>';
+  $("rank").innerHTML=r.slice(0,12).map((q,i)=>'<li><b>'+(i+1)+'</b><span class="src '+q.source+'">'+(q.source==="ai"?"AI":"真")+'</span><span>'+q.text+'</span></li>').join("");
+  $("resM").classList.add("show");}
+$("resClose").onclick=()=>$("resM").classList.remove("show");
+
+function askName(){$("nameI").value=voter;$("nameM").classList.add("show");}
+$("nameOk").onclick=()=>{voter=($("nameI").value.trim())||("匿名"+Math.floor(Math.random()*1000));localStorage.setItem("moyu_voter",voter);$("nameM").classList.remove("show");refresh();};
+$("rename").onclick=askName;
+
+(async()=>{
+  try{const r=await fetch("quotes.json?t="+Date.now());QUOTES=await r.json();}catch(e){QUOTES=[];}
+  QUOTES.forEach(q=>{byId[q.id]=q;seen[q.id]=0;});
+  votes.forEach(v=>{if(v.winner){seen[v.winner]=(seen[v.winner]||0)+1;seen[v.loser]=(seen[v.loser]||0)+1;}});
+  refresh();next();if(!voter)askName();
+})();
+</script>
+</body>
+</html>
