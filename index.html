@@ -219,7 +219,7 @@ function openResults(){
     '<div class="stat-row"><span>你投了</span><b>'+localVotes.filter(v=>v.winner).length+' 票</b></div>'+
     (prefStyle?'<div class="stat-row"><span>你最偏好的畫風</span><b>'+prefStyle[0]+'</b></div>':'')+
     (align!==null?'<div class="stat-row"><span>跟大家的契合度</span><b>'+align+'%</b></div>':'<div class="stat-row"><span>契合度</span><b>等更多人投票</b></div>')+
-    '<div class="stat-row"><span>你淘汰了</span><b>'+myVetoes.size+' 隻太醜的</b></div>';
+    '<div class="stat-row"><span>你淘汰了</span><b>'+(myVetoes.size+ownerKilled.size)+' 隻太醜的</b></div>';
   $("resultModal").classList.add("show");
 }
 $("continueBtn").onclick=()=>$("resultModal").classList.remove("show");
