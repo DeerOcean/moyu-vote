@@ -65,12 +65,12 @@
   <div class="pair">
     <div class="pick" id="pickL">
       <img id="imgL" alt="">
-      <div class="cardfoot"><span class="pickhint">👆 點圖選這隻</span><button class="vetobtn" data-side="L">🥚 太醜，淘汰</button></div>
+      <div class="cardfoot"><span class="pickhint">👆 這隻我喜歡</span><button class="vetobtn" data-side="L">🥚 太醜，淘汰</button></div>
       <div class="reveal" id="revL"></div>
     </div>
     <div class="pick" id="pickR">
       <img id="imgR" alt="">
-      <div class="cardfoot"><span class="pickhint">👆 點圖選這隻</span><button class="vetobtn" data-side="R">🥚 太醜，淘汰</button></div>
+      <div class="cardfoot"><span class="pickhint">👆 這隻我喜歡</span><button class="vetobtn" data-side="R">🥚 太醜，淘汰</button></div>
       <div class="reveal" id="revR"></div>
     </div>
   </div>
@@ -86,6 +86,8 @@
   <a class="link" href="submit.html">投稿語錄</a>
   <span class="link" id="changeName">改名</span>
   <span class="link" id="rankBtn">總排行</span>
+  <span class="link" id="devBtn">開發者</span>
+  <span class="link" id="killExport" style="display:none">匯出永不錄用</span>
 </footer>
 
 <div class="modal" id="nameModal">
@@ -124,11 +126,15 @@ const GOAL = 20;
 let voter = localStorage.getItem("moyu_voter") || "";
 let localVotes = JSON.parse(localStorage.getItem("moyu_pairwise_v2") || "[]");
 let myVetoes = new Set(JSON.parse(localStorage.getItem("moyu_myvetoes") || "[]"));
+let ownerKilled = new Set(JSON.parse(localStorage.getItem("moyu_ownerkilled") || "[]"));
+const DEV_CODE = "moyu888";
+let DEV = localStorage.getItem("moyu_dev")==="1";
+if(params.get("dev")===DEV_CODE){ DEV=true; localStorage.setItem("moyu_dev","1"); }
 let STATS = {perImage:{}, vetoedOut:[]};
 let pickCount = localVotes.filter(v=>!v.tie).length;
 document.getElementById("mode").textContent = API ? "連線" : "本機";
 
-function saveLocal(){ localStorage.setItem("moyu_pairwise_v2", JSON.stringify(localVotes)); localStorage.setItem("moyu_myvetoes", JSON.stringify([...myVetoes])); }
+function saveLocal(){ localStorage.setItem("moyu_pairwise_v2", JSON.stringify(localVotes)); localStorage.setItem("moyu_myvetoes", JSON.stringify([...myVetoes])); localStorage.setItem("moyu_ownerkilled", JSON.stringify([...ownerKilled])); }
 function $(id){ return document.getElementById(id); }
 function refresh(){ $("who").textContent = voter?("嗨 "+voter):""; $("progbar").style.width=Math.min(100,pickCount/GOAL*100)+"%"; }
 
@@ -142,7 +148,7 @@ async function post(obj){
 
 // active pool: drop globally-vetoed (>=2 distinct) and my own vetoes
 function activePool(){
-  const out = new Set([...(STATS.vetoedOut||[]), ...myVetoes]);
+  const out = new Set([...(STATS.vetoedOut||[]), ...myVetoes, ...ownerKilled]);
   return ITEMS.filter(x=>!out.has(x.id));
 }
 const seen = {}; ITEMS.forEach(x=>seen[x.id]=0);
@@ -179,9 +185,10 @@ function recordPick(winner,loser){
 }
 function recordTie(){ const v={voter,ts:Date.now(),pair:[curL.id,curR.id],tie:true}; localVotes.push(v); saveLocal(); post(v); nextPair(); }
 function recordVeto(side){
-  const id=(side==="L"?curL:curR).id; myVetoes.add(id); saveLocal();
-  post({voter,ts:Date.now(),type:"veto",image:id});
-  lastPair=[]; nextPair();
+  const id=(side==="L"?curL:curR).id;
+  if(DEV){ ownerKilled.add(id); post({voter,ts:Date.now(),type:"kill",image:id}); }
+  else { myVetoes.add(id); post({voter,ts:Date.now(),type:"veto",image:id}); }
+  saveLocal(); lastPair=[]; nextPair();
 }
 $("pickL").onclick=e=>{ if(e.target.classList.contains("vetobtn"))return; recordPick(curL.id,curR.id); };
 $("pickR").onclick=e=>{ if(e.target.classList.contains("vetobtn"))return; recordPick(curR.id,curL.id); };
@@ -239,7 +246,22 @@ $("nameOk").onclick=()=>{ voter=($("nameInput").value.trim())||("匿名"+Math.fl
 $("changeName").onclick=askName;
 
 // boot
-(async()=>{ await loadStats(); refresh(); nextPair(); if(!voter) askName(); })();
+function setupDev(){
+  document.querySelectorAll(".vetobtn").forEach(b=> b.textContent = DEV ? "🥚 太醜了，直接蛋雕永不錄用" : "🥚 太醜，淘汰");
+  document.getElementById("mode").textContent = DEV ? "開發者" : (API ? "連線" : "本機");
+  document.getElementById("killExport").style.display = DEV ? "" : "none";
+}
+document.getElementById("devBtn").onclick=()=>{
+  if(DEV){ if(confirm("關閉開發者模式？")){ DEV=false; localStorage.setItem("moyu_dev","0"); setupDev(); } return; }
+  const c=prompt("輸入開發者序號（解鎖一票否決·永不錄用）：");
+  if(c===DEV_CODE){ DEV=true; localStorage.setItem("moyu_dev","1"); setupDev(); nextPair(); alert("開發者模式開啟。淘汰鈕＝一票永久移出候選池。"); }
+  else if(c!==null){ alert("序號錯誤"); }
+};
+document.getElementById("killExport").onclick=()=>{
+  const ids=[...ownerKilled]; if(!ids.length){ alert("還沒淘汰任何一張"); return; }
+  navigator.clipboard.writeText(ids.join("\n")).then(()=>alert("已複製 "+ids.length+" 個永不錄用 id，貼回給我，我從候選池永久移除")).catch(()=>prompt("複製這些 id：",ids.join("\n")));
+};
+(async()=>{ await loadStats(); setupDev(); refresh(); nextPair(); if(!voter) askName(); })();
 </script>
 </body>
 </html>
