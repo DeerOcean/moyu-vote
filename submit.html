@@ -87,6 +87,7 @@ document.getElementById("mode").textContent=API?"連線":"本機";
 let subtype="語錄";
 let mine=JSON.parse(localStorage.getItem("moyu_submits")||"[]");
 let nick=localStorage.getItem("moyu_voter")||"";
+let sending=false;
 document.getElementById("nick").value=nick;
 function $(i){return document.getElementById(i);}
 function refreshMine(){ $("mycount").textContent = mine.length?("你已丟了 "+mine.length+" 句。"):""; }
@@ -101,7 +102,9 @@ function validate(){ send.disabled = txt.value.trim().length<2; $("c").textConte
 txt.oninput=validate;
 
 send.onclick=async()=>{
+  if(sending) return;
   const text=txt.value.trim(); if(text.length<2) return;
+  sending=true; send.disabled=true; send.textContent="送出中...";
   nick=($("nick").value.trim())||("匿名"+Math.floor(Math.random()*1000));
   localStorage.setItem("moyu_voter",nick);
   const rec={type:"submission",subtype,text,voter:nick,ts:Date.now()};
@@ -110,6 +113,7 @@ send.onclick=async()=>{
   const msgs=["寫得不錯，等大家來評分。","這句有料，進候選池了。","已歸檔。希望它能混進遊戲裡。","收下了，你的廢話很有價值。"];
   $("thankmsg").textContent = msgs[Math.floor(Math.random()*msgs.length)] + "（你的暱稱："+nick+"）";
   $("form").style.display="none"; $("thanks").style.display="block";
+  sending=false; send.textContent="丟進池子";
 };
 $("again").onclick=()=>{ txt.value=""; validate(); $("thanks").style.display="none"; $("form").style.display="block"; refreshMine(); };
 $("share").onclick=async(e)=>{ e.preventDefault();

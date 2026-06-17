@@ -24,9 +24,9 @@
   .vetobtn{border:1.5px solid var(--veto);background:#fff;color:var(--veto);font-size:12px;font-weight:600;padding:5px 12px;border-radius:16px;cursor:pointer;font-family:inherit}
   .vetobtn:active{background:var(--veto);color:#fff}
   .vs{text-align:center;font-size:12px;color:var(--muted);font-weight:700}
-  .controls{display:flex;gap:10px;justify-content:center}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
   .btn{padding:8px 16px;border:1px solid var(--line);border-radius:24px;background:var(--card);font-size:13px;cursor:pointer;font-family:inherit}
-  footer{padding:7px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted)}
+  footer{padding:7px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:12px;color:var(--muted)}
   footer a,.link{color:var(--accent);cursor:pointer;text-decoration:underline}
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:30}
   .modal.show{display:flex}
@@ -39,6 +39,16 @@
   .rank .src{font-size:10px;padding:1px 6px;border-radius:8px;flex:none;height:fit-content}
   .src.ai{background:#eef;color:#55a}.src.real{background:#efe6d6;color:#9a7430}
   .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 2px;border-bottom:1px solid var(--line)}
+  @media(max-width:560px){
+    header{padding:8px 10px} header h1{font-size:14px}
+    .q{font-size:13px;padding:7px 10px 1px}
+    main{gap:8px;padding:8px 10px}
+    .pair{gap:8px}
+    .pick{padding:12px;border-radius:14px}
+    .pick .t{font-size:clamp(15px,4.4vw,19px);line-height:1.45}
+    .btn{flex:1;min-width:88px;min-height:38px;padding:8px 10px}
+    footer{padding:6px 10px;font-size:11px}
+  }
 </style>
 <script>window.VOTE_API="https://script.google.com/macros/s/AKfycbxCHA8Yzc-FcNcVb67LfwqMgn-aukCa3TyIvTbM-UdhgMSZmBwqYj9Q0XexHvoDStpf/exec";</script>
 </head>
@@ -87,6 +97,7 @@ let QUOTES=[], byId={}, voter=localStorage.getItem("moyu_voter")||"";
 let votes=JSON.parse(localStorage.getItem("moyu_qvotes")||"[]");
 let myVeto=new Set(JSON.parse(localStorage.getItem("moyu_qveto")||"[]"));
 let pickN=votes.filter(v=>v.winner).length;
+let busy=false;
 function $(i){return document.getElementById(i);}
 $("mode").textContent=API?"連線":"本機";
 function save(){localStorage.setItem("moyu_qvotes",JSON.stringify(votes));localStorage.setItem("moyu_qveto",JSON.stringify([...myVeto]));}
@@ -99,13 +110,13 @@ function pick(excl){const p=pool().filter(q=>!excl.includes(q.id));if(!p.length)
   const mn=Math.min(...p.map(q=>seen[q.id]||0));const c=p.filter(q=>(seen[q.id]||0)<=mn+1);return c[Math.floor(Math.random()*c.length)];}
 let cA,cB,last=[];
 function next(){cA=pick(last);cB=pick([cA.id,...last]);last=[cA.id,cB.id];$("tA").textContent=cA.text;$("tB").textContent=cB.text;}
-function rec(w,l){pickN++;const v={type:"quote-vote",voter,ts:Date.now(),winner:w,loser:l};seen[w]=(seen[w]||0)+1;seen[l]=(seen[l]||0)+1;votes.push(v);save();post(v);refresh();
-  if(pickN>=GOAL && pickN%GOAL===0)setTimeout(openRes,250);next();}
+function rec(w,l){if(busy)return;busy=true;pickN++;const v={type:"quote-vote",voter,ts:Date.now(),winner:w,loser:l};seen[w]=(seen[w]||0)+1;seen[l]=(seen[l]||0)+1;votes.push(v);save();post(v);refresh();
+  if(pickN>=GOAL && pickN%GOAL===0)setTimeout(openRes,250);next();setTimeout(()=>busy=false,120);}
 $("pA").onclick=e=>{if(e.target.classList.contains("vetobtn"))return;rec(cA.id,cB.id);};
 $("pB").onclick=e=>{if(e.target.classList.contains("vetobtn"))return;rec(cB.id,cA.id);};
-document.querySelectorAll(".vetobtn").forEach(b=>b.onclick=e=>{e.stopPropagation();const q=(b.dataset.s==="A"?cA:cB);myVeto.add(q.id);save();post({type:"quote-veto",voter,ts:Date.now(),quote:q.id});last=[];next();});
-$("tie").onclick=()=>{votes.push({type:"quote-tie",voter,ts:Date.now(),pair:[cA.id,cB.id]});save();last=[];next();};
-$("skip").onclick=()=>{last=[];next();};
+document.querySelectorAll(".vetobtn").forEach(b=>b.onclick=e=>{e.stopPropagation();if(busy)return;busy=true;const q=(b.dataset.s==="A"?cA:cB);myVeto.add(q.id);save();post({type:"quote-veto",voter,ts:Date.now(),quote:q.id});last=[];next();setTimeout(()=>busy=false,120);});
+$("tie").onclick=()=>{if(busy)return;busy=true;votes.push({type:"quote-tie",voter,ts:Date.now(),pair:[cA.id,cB.id]});save();last=[];next();setTimeout(()=>busy=false,120);};
+$("skip").onclick=()=>{if(busy)return;busy=true;last=[];next();setTimeout(()=>busy=false,120);};
 $("res").onclick=openRes;
 
 function elo(){const R={};QUOTES.forEach(q=>R[q.id]=1000);const g={};QUOTES.forEach(q=>g[q.id]=0);
