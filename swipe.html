@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>滑卡篩摸魚候選</title>
 <style>
-  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--keep:#3a9d6b;--kill:#c25b52}
+  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--keep:#3a9d6b;--kill:#c25b52;--ref:#4a7ab5}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
   body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
   header{padding:9px 14px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
   header h1{font-size:15px;margin:0;flex:1;line-height:1.2}
   .badge{font-size:10px;padding:2px 8px;border-radius:12px;background:#efe6d6;color:#9a7430;white-space:nowrap}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
   .stat{background:var(--card);padding:8px 4px;text-align:center}
   .stat b{display:block;font-size:18px;line-height:1.1}
   .stat span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
@@ -25,12 +25,14 @@
   .stamp{position:absolute;top:18px;padding:8px 14px;border:3px solid;border-radius:12px;font-size:22px;font-weight:800;letter-spacing:1px;opacity:0;transform:rotate(-12deg);pointer-events:none;background:rgba(255,253,248,.85)}
   .stamp.kill{left:18px;color:var(--kill);border-color:var(--kill)}
   .stamp.keep{right:18px;color:var(--keep);border-color:var(--keep);transform:rotate(12deg)}
+  .stamp.ref{left:50%;top:10px;transform:translateX(-50%) rotate(0deg);color:var(--ref);border-color:var(--ref)}
   .empty{display:none;text-align:center;color:var(--muted);padding:22px;line-height:1.6}
   .empty.show{display:block}
   .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
   .act{min-height:48px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
   .act.kill{color:var(--kill);border-color:var(--kill)}
   .act.keep{color:var(--keep);border-color:var(--keep)}
+  .act.ref{grid-column:1 / span 2;color:var(--ref);border-color:var(--ref);min-height:42px;font-size:13px}
   .act:active{transform:scale(.98)}
   footer{padding:7px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:12px;color:var(--muted)}
   footer a,footer .link{color:var(--accent);cursor:pointer;text-decoration:underline}
@@ -61,6 +63,7 @@
 <div class="stats">
   <div class="stat"><b id="remain">0</b><span>未決</span></div>
   <div class="stat"><b id="keepN">0</b><span>候選池</span></div>
+  <div class="stat"><b id="refN">0</b><span>留參考</span></div>
   <div class="stat"><b id="killN">0</b><span>直接淘汰</span></div>
 </div>
 <main>
@@ -68,6 +71,7 @@
     <div class="card" id="card">
       <div class="stamp kill" id="killStamp">淘汰</div>
       <div class="stamp keep" id="keepStamp">候選</div>
+      <div class="stamp ref" id="refStamp">留參考</div>
       <img id="img" alt="" decoding="async" fetchpriority="high">
       <div class="meta"><span id="label"></span><span class="pill" id="style"></span></div>
     </div>
@@ -79,6 +83,7 @@
   <div class="actions">
     <button class="act kill" id="killBtn">左滑淘汰</button>
     <button class="act keep" id="keepBtn">右滑候選</button>
+    <button class="act ref" id="refBtn">⬆ 上滑：這張不行，但設計可參考</button>
   </div>
 </main>
 <footer>
@@ -88,12 +93,13 @@
   <a href="submit.html">投稿語錄</a>
   <span class="link" id="devBtn">解鎖</span>
   <span class="link" id="exportBtn">匯出候選</span>
+  <span class="link" id="exportRefBtn">匯出參考</span>
 </footer>
 
 <div class="modal" id="nameModal">
   <div class="box">
     <h2>開始篩圖</h2>
-    <p>右滑進候選池，左滑直接淘汰。已滑過的圖會立刻從隊列移除，不會再重複出現。</p>
+    <p>右滑進候選池，左滑直接淘汰，上滑＝這張不行但設計可參考（可打字寫建議）。已滑過的圖會立刻從隊列移除，不會再重複出現。</p>
     <input id="nameInput" placeholder="你的暱稱" maxlength="20">
     <button class="btn primary" id="nameOk">開始</button>
   </div>
@@ -101,11 +107,22 @@
 
 <div class="modal" id="exportModal">
   <div class="box">
-    <h2>候選池 ID</h2>
+    <h2 id="exportTitle">候選池 ID</h2>
     <p id="exportNote"></p>
     <textarea id="exportText" readonly></textarea>
     <button class="btn primary" id="copyExport">複製</button>
     <button class="btn" id="closeExport" style="margin-top:8px">關閉</button>
+  </div>
+</div>
+
+<div class="modal" id="refModal">
+  <div class="box">
+    <h2>這張不行，但哪裡值得留？</h2>
+    <p>打字寫下值得參考的地方（配色、姿勢、配件、構圖…），之後重新生圖時我會參考。可以留空直接標記。</p>
+    <textarea id="refNoteInput" placeholder="例如：腮紅配色很好看，姿勢可以留，背景太雜" style="min-height:90px"></textarea>
+    <button class="btn primary" id="refSubmit">送出並標記參考</button>
+    <button class="btn" id="refSkip" style="margin-top:8px">不寫了，直接標記</button>
+    <button class="btn" id="refCancel" style="margin-top:8px">取消，這張先不決定</button>
   </div>
 </div>
 
@@ -137,6 +154,7 @@ function buildDeck(){
 function counts(){
   const vals = Object.values(decisions);
   $("keepN").textContent = vals.filter(x=>x.decision==="keep").length;
+  $("refN").textContent = vals.filter(x=>x.decision==="reference").length;
   $("killN").textContent = vals.filter(x=>x.decision==="kill").length;
   $("remain").textContent = deck.length + (current ? 1 : 0);
   $("who").textContent = voter ? ("嗨 " + voter) : "";
@@ -161,6 +179,7 @@ function resetCard(){
   card.style.borderColor="var(--line)";
   $("killStamp").style.opacity=0;
   $("keepStamp").style.opacity=0;
+  $("refStamp").style.opacity=0;
 }
 function render(){
   resetCard();
@@ -188,29 +207,52 @@ async function postDecision(rec){
     await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(rec)});
   }catch(e){}
 }
-function decide(decision){
+function finalizeDecision(type, note){
   if(!current || busy) return;
   busy = true;
   const item = current;
-  const type = decision==="keep" ? "keep" : "kill";
-  decisions[item.id] = {decision:type, ts:Date.now(), style:item.style};
+  decisions[item.id] = {decision:type, note:note||"", ts:Date.now(), style:item.style};
   save();
-  const dx = type==="keep" ? window.innerWidth : -window.innerWidth;
+  let dx=0, dy=0, rot=0;
+  if(type==="keep"){ dx=window.innerWidth; rot=18; }
+  else if(type==="kill"){ dx=-window.innerWidth; rot=-18; }
+  else { dy=-window.innerHeight; }
   $("card").style.transition="transform .2s ease,opacity .2s ease";
-  $("card").style.transform="translate("+dx+"px,0) rotate("+(type==="keep"?18:-18)+"deg)";
+  $("card").style.transform="translate("+dx+"px,"+dy+"px) rotate("+rot+"deg)";
   $("card").style.opacity="0";
-  postDecision({type, voter, ts:Date.now(), image:item.id, pair:[item.id], source:"swipe"});
+  postDecision({type, voter, ts:Date.now(), image:item.id, pair:[item.id, note||""], source:"swipe"});
   setTimeout(()=>{ busy=false; nextCard(); }, 210);
 }
-function dragMove(dx){
+function decide(decision){
+  if(decision==="reference"){ triggerReference(); return; }
+  finalizeDecision(decision==="keep"?"keep":"kill", "");
+}
+function triggerReference(){
+  if(!current || busy) return;
+  resetCard();
+  $("refNoteInput").value="";
+  $("refModal").classList.add("show");
+  setTimeout(()=>$("refNoteInput").focus(), 60);
+}
+function dragMove(dx, dy){
   const card=$("card");
-  const rot=Math.max(-18, Math.min(18, dx/12));
   card.style.transition="none";
-  card.style.transform="translate("+dx+"px,0) rotate("+rot+"deg)";
-  const ratio=Math.min(1, Math.abs(dx)/120);
-  $("killStamp").style.opacity = dx<0 ? ratio : 0;
-  $("keepStamp").style.opacity = dx>0 ? ratio : 0;
-  card.style.borderColor = dx>0 ? "var(--keep)" : (dx<0 ? "var(--kill)" : "var(--line)");
+  if(Math.abs(dy) > Math.abs(dx) && dy < 0){
+    card.style.transform="translate(0,"+dy+"px)";
+    const ratio=Math.min(1, Math.abs(dy)/120);
+    $("refStamp").style.opacity = ratio;
+    $("killStamp").style.opacity = 0;
+    $("keepStamp").style.opacity = 0;
+    card.style.borderColor = "var(--ref)";
+  } else {
+    const rot=Math.max(-18, Math.min(18, dx/12));
+    card.style.transform="translate("+dx+"px,0) rotate("+rot+"deg)";
+    const ratio=Math.min(1, Math.abs(dx)/120);
+    $("killStamp").style.opacity = dx<0 ? ratio : 0;
+    $("keepStamp").style.opacity = dx>0 ? ratio : 0;
+    $("refStamp").style.opacity = 0;
+    card.style.borderColor = dx>0 ? "var(--keep)" : (dx<0 ? "var(--kill)" : "var(--line)");
+  }
 }
 function attachGestures(){
   const card=$("card");
@@ -222,15 +264,16 @@ function attachGestures(){
   card.addEventListener("pointermove", e=>{
     if(!dragging || busy) return;
     const dx=e.clientX-startX, dy=e.clientY-startY;
-    if(Math.abs(dx) > Math.abs(dy)) e.preventDefault();
-    dragMove(dx);
+    e.preventDefault();
+    dragMove(dx, dy);
   });
   card.addEventListener("pointerup", e=>{
     if(!dragging || busy) return;
     dragging=false;
-    const dx=e.clientX-startX;
-    if(dx>90) decide("keep");
-    else if(dx<-90) decide("kill");
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    if(Math.abs(dy) > Math.abs(dx) && dy < -90){ triggerReference(); return; }
+    if(dx>90) finalizeDecision("keep","");
+    else if(dx<-90) finalizeDecision("kill","");
     else resetCard();
   });
   card.addEventListener("pointercancel", ()=>{ dragging=false; resetCard(); });
@@ -242,7 +285,7 @@ async function loadRemote(){
     const rows=await r.json();
     if(Array.isArray(rows)){
       rows.forEach(v=>{
-        if(v && v.image && (v.type==="kill" || v.type==="keep" || v.type==="candidate")) remoteReviewed.add(v.image);
+        if(v && v.image && (v.type==="kill" || v.type==="keep" || v.type==="reference" || v.type==="candidate")) remoteReviewed.add(v.image);
       });
     }
   }catch(e){}
@@ -258,6 +301,14 @@ function askName(){ $("nameInput").value=voter; $("nameModal").classList.add("sh
 $("nameOk").onclick=()=>{ voter=($("nameInput").value.trim())||("匿名"+Math.floor(Math.random()*1000)); localStorage.setItem("moyu_voter",voter); $("nameModal").classList.remove("show"); counts(); };
 $("killBtn").onclick=()=>decide("kill");
 $("keepBtn").onclick=()=>decide("keep");
+$("refBtn").onclick=()=>triggerReference();
+$("refSubmit").onclick=()=>{ const note=$("refNoteInput").value.trim(); $("refModal").classList.remove("show"); finalizeDecision("reference", note); };
+$("refSkip").onclick=()=>{ $("refModal").classList.remove("show"); finalizeDecision("reference", ""); };
+$("refCancel").onclick=()=>{ $("refModal").classList.remove("show"); resetCard(); };
+$("refNoteInput").addEventListener("keydown", e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==="Enter"){ e.preventDefault(); $("refSubmit").click(); }
+  if(e.key==="Escape"){ e.preventDefault(); $("refCancel").click(); }
+});
 async function refreshFromRemote(){
   if(syncing) return;
   syncing=true; const btn=$("devBtn"); const old=btn.textContent; btn.textContent="同步中...";
@@ -280,19 +331,30 @@ $("devBtn").onclick=async()=>{
 };
 $("exportBtn").onclick=()=>{
   const keepIds=Object.entries(decisions).filter(([,v])=>v.decision==="keep").map(([id])=>id);
+  $("exportTitle").textContent="候選池 ID";
   $("exportNote").textContent="本機候選 "+keepIds.length+" 張。";
   $("exportText").value=keepIds.join("\n");
   $("exportModal").classList.add("show");
 };
+$("exportRefBtn").onclick=()=>{
+  const refs=Object.entries(decisions).filter(([,v])=>v.decision==="reference");
+  $("exportTitle").textContent="留作參考的設計建議";
+  $("exportNote").textContent="共 "+refs.length+" 張。格式：圖片id — 畫風 — 你的建議";
+  $("exportText").value=refs.map(([id,v])=>id+" — "+v.style+" — "+(v.note||"（無附註）")).join("\n");
+  $("exportModal").classList.add("show");
+};
 $("copyExport").onclick=async()=>{
   const text=$("exportText").value;
-  try{ await navigator.clipboard.writeText(text); alert("已複製候選 ID"); }
-  catch(e){ $("exportText").select(); document.execCommand("copy"); alert("已複製候選 ID"); }
+  try{ await navigator.clipboard.writeText(text); alert("已複製"); }
+  catch(e){ $("exportText").select(); document.execCommand("copy"); alert("已複製"); }
 };
 $("closeExport").onclick=()=>$("exportModal").classList.remove("show");
 document.addEventListener("keydown", e=>{
-  if(e.key==="ArrowLeft") decide("kill");
-  if(e.key==="ArrowRight") decide("keep");
+  const tag = document.activeElement && document.activeElement.tagName;
+  if(tag==="TEXTAREA" || tag==="INPUT") return;
+  if(e.key==="ArrowLeft") finalizeDecision("kill","");
+  if(e.key==="ArrowRight") finalizeDecision("keep","");
+  if(e.key==="ArrowUp"){ e.preventDefault(); triggerReference(); }
 });
 (async()=>{
   modeText();
