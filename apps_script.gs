@@ -1,5 +1,5 @@
 // 摸魚比稿 + UGC 投稿 — Google Apps Script Web App
-// POST：type=vote/tie/veto → votes 分頁；type=submission → submissions 分頁。doGet 回票 JSON。
+// POST：type=vote/tie/veto/kill/keep → votes 分頁；type=quote_* → quote_votes 分頁；type=submission → submissions 分頁。doGet 回票 JSON。
 // 部署：擴充功能→Apps Script→貼上→部署為網頁應用程式(任何人可存取)。
 
 function _sheet(name, header) {
