@@ -86,7 +86,7 @@
   <a href="index.html">二選一</a>
   <a href="quotes.html">語錄評分</a>
   <a href="submit.html">投稿語錄</a>
-  <span class="link" id="devBtn">開發者</span>
+  <span class="link" id="devBtn">解鎖</span>
   <span class="link" id="exportBtn">匯出候選</span>
 </footer>
 
@@ -122,16 +122,17 @@ let remoteReviewed = new Set();
 let deck = [];
 let current = null;
 let busy = false;
+let syncing = false;
 let startX = 0, startY = 0, dragging = false;
 const preloaded = new Set();
 function $(id){ return document.getElementById(id); }
 function save(){ localStorage.setItem("moyu_swipe_decisions_v1", JSON.stringify(decisions)); }
-function modeText(){ $("mode").textContent = DEV && API ? "開發者連線" : (DEV ? "開發者本機" : "本機預覽"); }
+function modeText(){ $("mode").textContent = DEV && API ? "已解鎖（即時同步）" : (DEV ? "已解鎖（離線）" : "本機預覽"); }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 function decidedIds(){ return new Set([...Object.keys(decisions), ...remoteReviewed]); }
 function buildDeck(){
   const decided = decidedIds();
-  deck = shuffle(ITEMS.filter(x=>!decided.has(x.id)));
+  deck = shuffle(ITEMS.filter(x=>!decided.has(x.id) && (!current || x.id!==current.id)));
 }
 function counts(){
   const vals = Object.values(decisions);
@@ -257,17 +258,23 @@ function askName(){ $("nameInput").value=voter; $("nameModal").classList.add("sh
 $("nameOk").onclick=()=>{ voter=($("nameInput").value.trim())||("匿名"+Math.floor(Math.random()*1000)); localStorage.setItem("moyu_voter",voter); $("nameModal").classList.remove("show"); counts(); };
 $("killBtn").onclick=()=>decide("kill");
 $("keepBtn").onclick=()=>decide("keep");
+async function refreshFromRemote(){
+  if(syncing) return;
+  syncing=true; const btn=$("devBtn"); const old=btn.textContent; btn.textContent="同步中...";
+  await loadRemote();
+  buildDeck();
+  if(current && decidedIds().has(current.id)) current=null;
+  if(!current) nextCard(); else counts();
+  syncing=false; btn.textContent=DEV?"重新整理":"解鎖";
+}
 $("devBtn").onclick=async()=>{
-  if(DEV){ if(confirm("關閉開發者模式？")){ DEV=false; localStorage.setItem("moyu_dev","0"); modeText(); } return; }
-  const c=prompt("輸入開發者序號：");
+  if(DEV){ await refreshFromRemote(); return; }
+  const c=prompt("輸入序號（解鎖後滑動會即時同步到候選池，且看得到所有裝置的最新結果）：");
   if(c===DEV_CODE){
-    DEV=true;
-    localStorage.setItem("moyu_dev","1");
-    modeText();
-    await loadRemote();
-    buildDeck();
-    nextCard();
-    alert("開發者模式開啟。滑動結果會寫入後端。");
+    DEV=true; localStorage.setItem("moyu_dev","1"); modeText();
+    $("devBtn").textContent="重新整理";
+    await refreshFromRemote();
+    alert("已解鎖。之後滑動會即時同步，候選池也會自動排除已淘汰的圖。");
   }
   else if(c!==null){ alert("序號錯誤"); }
 };
@@ -289,12 +296,21 @@ document.addEventListener("keydown", e=>{
 });
 (async()=>{
   modeText();
+  $("devBtn").textContent = DEV ? "重新整理" : "解鎖";
   await loadStats();
   await loadRemote();
   buildDeck();
   attachGestures();
   nextCard();
   if(!voter) askName();
+  if(API && DEV){
+    setInterval(async()=>{
+      if(busy || syncing) return;
+      await loadRemote();
+      buildDeck();
+      if(current && decidedIds().has(current.id)){ current=null; nextCard(); } else { counts(); }
+    }, 25000);
+  }
 })();
 </script>
 </body>
