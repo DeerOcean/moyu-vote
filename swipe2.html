@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>第二輪聚焦滑卡（前三梯決選）</title>
+<style>
+  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--keep:#3a9d6b;--kill:#c25b52;--ref:#4a7ab5}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+  header{padding:9px 14px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  header h1{font-size:15px;margin:0;flex:1;line-height:1.2}
+  .badge{font-size:10px;padding:2px 8px;border-radius:12px;background:#efe6d6;color:#9a7430;white-space:nowrap}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+  .stat{background:var(--card);padding:8px 4px;text-align:center}
+  .stat b{display:block;font-size:18px;line-height:1.1}
+  .stat span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+  main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px;max-width:560px;width:100%;margin:0 auto}
+  .stage{position:relative;width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+  .card{position:absolute;inset:0;background:var(--card);border:2px solid var(--line);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;touch-action:none;user-select:none;box-shadow:0 10px 24px rgba(43,43,43,.08);transition:transform .16s ease,border-color .16s ease,opacity .16s ease}
+  .card img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;min-height:0;transition:opacity .12s}
+  .meta{width:100%;display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;color:var(--muted);padding-top:8px}
+  .pill{padding:2px 8px;border-radius:999px;background:#efe6d6;color:#9a7430;white-space:nowrap}
+  .stamp{position:absolute;top:18px;padding:8px 14px;border:3px solid;border-radius:12px;font-size:22px;font-weight:800;letter-spacing:1px;opacity:0;transform:rotate(-12deg);pointer-events:none;background:rgba(255,253,248,.85)}
+  .stamp.kill{left:18px;color:var(--kill);border-color:var(--kill)}
+  .stamp.keep{right:18px;color:var(--keep);border-color:var(--keep);transform:rotate(12deg)}
+  .stamp.ref{left:50%;top:10px;transform:translateX(-50%) rotate(0deg);color:var(--ref);border-color:var(--ref)}
+  .empty{display:none;text-align:center;color:var(--muted);padding:22px;line-height:1.6}
+  .empty.show{display:block}
+  .noteinput{width:100%;border:1.5px solid var(--ref);border-radius:12px;padding:9px 11px;font-family:inherit;font-size:13px;resize:none;min-height:40px;background:#fff;color:var(--ink)}
+  .noteinput:focus{outline:none;box-shadow:0 0 0 2px rgba(74,122,181,.25)}
+  .noteinput::placeholder{color:var(--muted)}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+  .act{min-height:48px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .act.kill{color:var(--kill);border-color:var(--kill)}
+  .act.keep{color:var(--keep);border-color:var(--keep)}
+  .act.ref{grid-column:1 / span 2;color:var(--ref);border-color:var(--ref);min-height:42px;font-size:13px}
+  .act:active{transform:scale(.98)}
+  footer{padding:7px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:12px;color:var(--muted)}
+  footer a,footer .link{color:var(--accent);cursor:pointer;text-decoration:underline}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:30}
+  .modal.show{display:flex}
+  .box{background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow:auto;text-align:center}
+  .box h2{margin:0 0 8px;font-size:18px}.box p{font-size:13px;color:var(--muted);line-height:1.6}
+  .box input{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit}
+  .btn{padding:10px 16px;border:1px solid var(--line);border-radius:24px;background:var(--card);font-size:13px;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);width:100%;margin-top:12px;padding:12px;font-weight:700}
+  textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;resize:vertical}
+  @media(max-width:560px){
+    header{padding:8px 10px} header h1{font-size:14px}
+    .stat{padding:7px 3px}.stat b{font-size:17px}
+    main{padding:9px 10px;gap:10px}
+    .card{border-radius:14px;padding:8px}
+    .noteinput{font-size:13px;min-height:36px}
+    .actions{gap:8px}.act{min-height:46px;font-size:14px}
+    footer{padding:6px 10px;font-size:11px}
+  }
+</style>
+<script>window.VOTE_API="https://script.google.com/macros/s/AKfycbxCHA8Yzc-FcNcVb67LfwqMgn-aukCa3TyIvTbM-UdhgMSZmBwqYj9Q0XexHvoDStpf/exec";</script>
+</head>
+<body>
+<header>
+  <h1>第二輪聚焦滑卡：國風/copic/airbrush 先滑，後段 crayon/chalkpastel</h1>
+  <span class="badge" id="mode">本機</span>
+</header>
+<div class="stats">
+  <div class="stat"><b id="remain">0</b><span>未決</span></div>
+  <div class="stat"><b id="keepN">0</b><span>候選池</span></div>
+  <div class="stat"><b id="refN">0</b><span>留參考</span></div>
+  <div class="stat"><b id="killN">0</b><span>直接淘汰</span></div>
+</div>
+<main>
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="stamp kill" id="killStamp">淘汰</div>
+      <div class="stamp keep" id="keepStamp">候選</div>
+      <div class="stamp ref" id="refStamp">留參考</div>
+      <img id="img" alt="" decoding="async" fetchpriority="high">
+      <div class="meta"><span id="label"></span><span class="pill" id="style"></span></div>
+    </div>
+    <div class="empty" id="empty">
+      <h2>這輪滑完了</h2>
+      <p>本機已沒有未決候選。可以匯出候選 ID，或等新增圖後再回來滑。</p>
+    </div>
+  </div>
+  <textarea id="refNoteInput" class="noteinput" placeholder="想保留的部分設計（配色／姿勢／配件／構圖…），不填也可以直接按下面的按鈕"></textarea>
+  <div class="actions">
+    <button class="act kill" id="killBtn">左滑／淘汰</button>
+    <button class="act keep" id="keepBtn">右滑／候選</button>
+    <button class="act ref" id="refBtn">保留部分設計，不進候選池</button>
+  </div>
+</main>
+<footer>
+  <span id="who"></span><span style="flex:1"></span>
+  <a href="index.html">二選一</a>
+  <a href="quotes.html">語錄評分</a>
+  <a href="submit.html">投稿語錄</a>
+  <span class="link" id="devBtn">解鎖</span>
+  <span class="link" id="exportBtn">匯出候選</span>
+  <span class="link" id="exportRefBtn">匯出參考</span>
+</footer>
+
+<div class="modal" id="nameModal">
+  <div class="box">
+    <h2>開始篩圖</h2>
+    <p>右滑／按候選＝進候選池，左滑／按淘汰＝直接踢除。想留設計就在輸入框打字，再按「保留部分設計」——這張不進候選池，但建議會存起來給我參考重新生圖。已決定的圖會立刻從隊列移除，不會再重複出現。</p>
+    <input id="nameInput" placeholder="你的暱稱" maxlength="20">
+    <button class="btn primary" id="nameOk">開始</button>
+  </div>
+</div>
+
+<div class="modal" id="exportModal">
+  <div class="box">
+    <h2 id="exportTitle">候選池 ID</h2>
+    <p id="exportNote"></p>
+    <textarea id="exportText" readonly></textarea>
+    <button class="btn primary" id="copyExport">複製</button>
+    <button class="btn" id="closeExport" style="margin-top:8px">關閉</button>
+  </div>
+</div>
+
+
+<script>
+const ITEMS = [{"id": "g015__copic__03", "group": "copic", "style": "copic", "file": "imgs/g015__copic__03.jpg", "label": "g015__copic__03"}, {"id": "C_guofeng__22", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__22.jpg", "label": "C_guofeng__22"}, {"id": "g095__airbrush__10", "group": "airbrush", "style": "airbrush", "file": "imgs/g095__airbrush__10.jpg", "label": "g095__airbrush__10"}, {"id": "g020__airbrush__09", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__09.jpg", "label": "g020__airbrush__09"}, {"id": "g095__airbrush__06", "group": "airbrush", "style": "airbrush", "file": "imgs/g095__airbrush__06.jpg", "label": "g095__airbrush__06"}, {"id": "g065__copic__07", "group": "copic", "style": "copic", "file": "imgs/g065__copic__07.jpg", "label": "g065__copic__07"}, {"id": "g045__airbrush__08", "group": "airbrush", "style": "airbrush", "file": "imgs/g045__airbrush__08.jpg", "label": "g045__airbrush__08"}, {"id": "g070__airbrush__01", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__01.jpg", "label": "g070__airbrush__01"}, {"id": "C_guofeng__08", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__08.jpg", "label": "C_guofeng__08"}, {"id": "g095__airbrush__09", "group": "airbrush", "style": "airbrush", "file": "imgs/g095__airbrush__09.jpg", "label": "g095__airbrush__09"}, {"id": "g090__copic__03", "group": "copic", "style": "copic", "file": "imgs/g090__copic__03.jpg", "label": "g090__copic__03"}, {"id": "g020__airbrush__08", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__08.jpg", "label": "g020__airbrush__08"}, {"id": "C_guofeng__26", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__26.jpg", "label": "C_guofeng__26"}, {"id": "g020__airbrush__04", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__04.jpg", "label": "g020__airbrush__04"}, {"id": "C_guofeng__48", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__48.jpg", "label": "C_guofeng__48"}, {"id": "C_guofeng__07", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__07.jpg", "label": "C_guofeng__07"}, {"id": "g065__copic__01", "group": "copic", "style": "copic", "file": "imgs/g065__copic__01.jpg", "label": "g065__copic__01"}, {"id": "g095__airbrush__05", "group": "airbrush", "style": "airbrush", "file": "imgs/g095__airbrush__05.jpg", "label": "g095__airbrush__05"}, {"id": "g040__copic__04", "group": "copic", "style": "copic", "file": "imgs/g040__copic__04.jpg", "label": "g040__copic__04"}, {"id": "C_guofeng__50", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__50.jpg", "label": "C_guofeng__50"}, {"id": "g090__copic__07", "group": "copic", "style": "copic", "file": "imgs/g090__copic__07.jpg", "label": "g090__copic__07"}, {"id": "g095__airbrush__08", "group": "airbrush", "style": "airbrush", "file": "imgs/g095__airbrush__08.jpg", "label": "g095__airbrush__08"}, {"id": "C_guofeng__40", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__40.jpg", "label": "C_guofeng__40"}, {"id": "C_guofeng__15", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__15.jpg", "label": "C_guofeng__15"}, {"id": "C_guofeng__27", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__27.jpg", "label": "C_guofeng__27"}, {"id": "g040__copic__03", "group": "copic", "style": "copic", "file": "imgs/g040__copic__03.jpg", "label": "g040__copic__03"}, {"id": "g070__airbrush__05", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__05.jpg", "label": "g070__airbrush__05"}, {"id": "C_guofeng__43", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__43.jpg", "label": "C_guofeng__43"}, {"id": "C_guofeng__18", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__18.jpg", "label": "C_guofeng__18"}, {"id": "g015__copic__04", "group": "copic", "style": "copic", "file": "imgs/g015__copic__04.jpg", "label": "g015__copic__04"}, {"id": "g020__airbrush__07", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__07.jpg", "label": "g020__airbrush__07"}, {"id": "g070__airbrush__04", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__04.jpg", "label": "g070__airbrush__04"}, {"id": "C_guofeng__03", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__03.jpg", "label": "C_guofeng__03"}, {"id": "C_guofeng__02", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__02.jpg", "label": "C_guofeng__02"}, {"id": "g020__airbrush__06", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__06.jpg", "label": "g020__airbrush__06"}, {"id": "C_guofeng__09", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__09.jpg", "label": "C_guofeng__09"}, {"id": "g040__copic__10", "group": "copic", "style": "copic", "file": "imgs/g040__copic__10.jpg", "label": "g040__copic__10"}, {"id": "g065__copic__02", "group": "copic", "style": "copic", "file": "imgs/g065__copic__02.jpg", "label": "g065__copic__02"}, {"id": "g095__airbrush__04", "group": "airbrush", "style": "airbrush", "file": "imgs/g095__airbrush__04.jpg", "label": "g095__airbrush__04"}, {"id": "g015__copic__06", "group": "copic", "style": "copic", "file": "imgs/g015__copic__06.jpg", "label": "g015__copic__06"}, {"id": "g065__copic__08", "group": "copic", "style": "copic", "file": "imgs/g065__copic__08.jpg", "label": "g065__copic__08"}, {"id": "C_guofeng__11", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__11.jpg", "label": "C_guofeng__11"}, {"id": "C_guofeng__35", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__35.jpg", "label": "C_guofeng__35"}, {"id": "g020__airbrush__05", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__05.jpg", "label": "g020__airbrush__05"}, {"id": "g090__copic__08", "group": "copic", "style": "copic", "file": "imgs/g090__copic__08.jpg", "label": "g090__copic__08"}, {"id": "g015__copic__05", "group": "copic", "style": "copic", "file": "imgs/g015__copic__05.jpg", "label": "g015__copic__05"}, {"id": "C_guofeng__25", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__25.jpg", "label": "C_guofeng__25"}, {"id": "g090__copic__04", "group": "copic", "style": "copic", "file": "imgs/g090__copic__04.jpg", "label": "g090__copic__04"}, {"id": "g090__copic__10", "group": "copic", "style": "copic", "file": "imgs/g090__copic__10.jpg", "label": "g090__copic__10"}, {"id": "g015__copic__02", "group": "copic", "style": "copic", "file": "imgs/g015__copic__02.jpg", "label": "g015__copic__02"}, {"id": "C_guofeng__24", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__24.jpg", "label": "C_guofeng__24"}, {"id": "g015__copic__10", "group": "copic", "style": "copic", "file": "imgs/g015__copic__10.jpg", "label": "g015__copic__10"}, {"id": "g040__copic__05", "group": "copic", "style": "copic", "file": "imgs/g040__copic__05.jpg", "label": "g040__copic__05"}, {"id": "C_guofeng__16", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__16.jpg", "label": "C_guofeng__16"}, {"id": "C_guofeng__13", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__13.jpg", "label": "C_guofeng__13"}, {"id": "C_guofeng__20", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__20.jpg", "label": "C_guofeng__20"}, {"id": "g090__copic__02", "group": "copic", "style": "copic", "file": "imgs/g090__copic__02.jpg", "label": "g090__copic__02"}, {"id": "g020__airbrush__03", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__03.jpg", "label": "g020__airbrush__03"}, {"id": "C_guofeng__41", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__41.jpg", "label": "C_guofeng__41"}, {"id": "g045__airbrush__10", "group": "airbrush", "style": "airbrush", "file": "imgs/g045__airbrush__10.jpg", "label": "g045__airbrush__10"}, {"id": "C_guofeng__14", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__14.jpg", "label": "C_guofeng__14"}, {"id": "C_guofeng__30", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__30.jpg", "label": "C_guofeng__30"}, {"id": "g045__airbrush__03", "group": "airbrush", "style": "airbrush", "file": "imgs/g045__airbrush__03.jpg", "label": "g045__airbrush__03"}, {"id": "g065__copic__03", "group": "copic", "style": "copic", "file": "imgs/g065__copic__03.jpg", "label": "g065__copic__03"}, {"id": "C_guofeng__36", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__36.jpg", "label": "C_guofeng__36"}, {"id": "C_guofeng__49", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__49.jpg", "label": "C_guofeng__49"}, {"id": "C_guofeng__21", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__21.jpg", "label": "C_guofeng__21"}, {"id": "C_guofeng__42", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__42.jpg", "label": "C_guofeng__42"}, {"id": "C_guofeng__44", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__44.jpg", "label": "C_guofeng__44"}, {"id": "g040__copic__08", "group": "copic", "style": "copic", "file": "imgs/g040__copic__08.jpg", "label": "g040__copic__08"}, {"id": "g070__airbrush__03", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__03.jpg", "label": "g070__airbrush__03"}, {"id": "g070__airbrush__08", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__08.jpg", "label": "g070__airbrush__08"}, {"id": "C_guofeng__45", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__45.jpg", "label": "C_guofeng__45"}, {"id": "g045__airbrush__09", "group": "airbrush", "style": "airbrush", "file": "imgs/g045__airbrush__09.jpg", "label": "g045__airbrush__09"}, {"id": "C_guofeng__31", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__31.jpg", "label": "C_guofeng__31"}, {"id": "g045__airbrush__05", "group": "airbrush", "style": "airbrush", "file": "imgs/g045__airbrush__05.jpg", "label": "g045__airbrush__05"}, {"id": "g090__copic__09", "group": "copic", "style": "copic", "file": "imgs/g090__copic__09.jpg", "label": "g090__copic__09"}, {"id": "C_guofeng__29", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__29.jpg", "label": "C_guofeng__29"}, {"id": "C_guofeng__10", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__10.jpg", "label": "C_guofeng__10"}, {"id": "g045__airbrush__06", "group": "airbrush", "style": "airbrush", "file": "imgs/g045__airbrush__06.jpg", "label": "g045__airbrush__06"}, {"id": "C_guofeng__12", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__12.jpg", "label": "C_guofeng__12"}, {"id": "g015__copic__07", "group": "copic", "style": "copic", "file": "imgs/g015__copic__07.jpg", "label": "g015__copic__07"}, {"id": "g065__copic__05", "group": "copic", "style": "copic", "file": "imgs/g065__copic__05.jpg", "label": "g065__copic__05"}, {"id": "g070__airbrush__09", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__09.jpg", "label": "g070__airbrush__09"}, {"id": "C_guofeng__28", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__28.jpg", "label": "C_guofeng__28"}, {"id": "C_guofeng__01", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__01.jpg", "label": "C_guofeng__01"}, {"id": "C_guofeng__32", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__32.jpg", "label": "C_guofeng__32"}, {"id": "C_guofeng__39", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__39.jpg", "label": "C_guofeng__39"}, {"id": "g070__airbrush__10", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__10.jpg", "label": "g070__airbrush__10"}, {"id": "g020__airbrush__01", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__01.jpg", "label": "g020__airbrush__01"}, {"id": "g015__copic__08", "group": "copic", "style": "copic", "file": "imgs/g015__copic__08.jpg", "label": "g015__copic__08"}, {"id": "g099__chalkpastel__07", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__07.jpg", "label": "g099__chalkpastel__07"}, {"id": "g099__chalkpastel__01", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__01.jpg", "label": "g099__chalkpastel__01"}, {"id": "g082__crayon__02", "group": "crayon", "style": "crayon", "file": "imgs/g082__crayon__02.jpg", "label": "g082__crayon__02"}, {"id": "g099__chalkpastel__09", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__09.jpg", "label": "g099__chalkpastel__09"}, {"id": "g049__chalkpastel__06", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g049__chalkpastel__06.jpg", "label": "g049__chalkpastel__06"}, {"id": "g074__chalkpastel__10", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g074__chalkpastel__10.jpg", "label": "g074__chalkpastel__10"}, {"id": "g082__crayon__01", "group": "crayon", "style": "crayon", "file": "imgs/g082__crayon__01.jpg", "label": "g082__crayon__01"}, {"id": "g032__crayon__07", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__07.jpg", "label": "g032__crayon__07"}, {"id": "g024__chalkpastel__07", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__07.jpg", "label": "g024__chalkpastel__07"}, {"id": "g099__chalkpastel__04", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__04.jpg", "label": "g099__chalkpastel__04"}, {"id": "g049__chalkpastel__02", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g049__chalkpastel__02.jpg", "label": "g049__chalkpastel__02"}, {"id": "g024__chalkpastel__01", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__01.jpg", "label": "g024__chalkpastel__01"}, {"id": "g049__chalkpastel__01", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g049__chalkpastel__01.jpg", "label": "g049__chalkpastel__01"}, {"id": "g074__chalkpastel__06", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g074__chalkpastel__06.jpg", "label": "g074__chalkpastel__06"}, {"id": "g024__chalkpastel__10", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__10.jpg", "label": "g024__chalkpastel__10"}, {"id": "g049__chalkpastel__09", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g049__chalkpastel__09.jpg", "label": "g049__chalkpastel__09"}, {"id": "g082__crayon__06", "group": "crayon", "style": "crayon", "file": "imgs/g082__crayon__06.jpg", "label": "g082__crayon__06"}, {"id": "g007__crayon__10", "group": "crayon", "style": "crayon", "file": "imgs/g007__crayon__10.jpg", "label": "g007__crayon__10"}, {"id": "g074__chalkpastel__08", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g074__chalkpastel__08.jpg", "label": "g074__chalkpastel__08"}, {"id": "g082__crayon__10", "group": "crayon", "style": "crayon", "file": "imgs/g082__crayon__10.jpg", "label": "g082__crayon__10"}, {"id": "g099__chalkpastel__10", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__10.jpg", "label": "g099__chalkpastel__10"}, {"id": "g082__crayon__08", "group": "crayon", "style": "crayon", "file": "imgs/g082__crayon__08.jpg", "label": "g082__crayon__08"}, {"id": "g007__crayon__05", "group": "crayon", "style": "crayon", "file": "imgs/g007__crayon__05.jpg", "label": "g007__crayon__05"}, {"id": "g032__crayon__02", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__02.jpg", "label": "g032__crayon__02"}, {"id": "g032__crayon__01", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__01.jpg", "label": "g032__crayon__01"}, {"id": "g007__crayon__01", "group": "crayon", "style": "crayon", "file": "imgs/g007__crayon__01.jpg", "label": "g007__crayon__01"}, {"id": "g007__crayon__06", "group": "crayon", "style": "crayon", "file": "imgs/g007__crayon__06.jpg", "label": "g007__crayon__06"}, {"id": "g032__crayon__04", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__04.jpg", "label": "g032__crayon__04"}, {"id": "g099__chalkpastel__02", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__02.jpg", "label": "g099__chalkpastel__02"}, {"id": "g082__crayon__03", "group": "crayon", "style": "crayon", "file": "imgs/g082__crayon__03.jpg", "label": "g082__crayon__03"}, {"id": "g057__crayon__04", "group": "crayon", "style": "crayon", "file": "imgs/g057__crayon__04.jpg", "label": "g057__crayon__04"}, {"id": "g074__chalkpastel__03", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g074__chalkpastel__03.jpg", "label": "g074__chalkpastel__03"}, {"id": "g024__chalkpastel__08", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__08.jpg", "label": "g024__chalkpastel__08"}, {"id": "g049__chalkpastel__10", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g049__chalkpastel__10.jpg", "label": "g049__chalkpastel__10"}, {"id": "g024__chalkpastel__05", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__05.jpg", "label": "g024__chalkpastel__05"}, {"id": "g024__chalkpastel__04", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__04.jpg", "label": "g024__chalkpastel__04"}, {"id": "g032__crayon__03", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__03.jpg", "label": "g032__crayon__03"}, {"id": "g074__chalkpastel__04", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g074__chalkpastel__04.jpg", "label": "g074__chalkpastel__04"}, {"id": "g032__crayon__08", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__08.jpg", "label": "g032__crayon__08"}, {"id": "g099__chalkpastel__06", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__06.jpg", "label": "g099__chalkpastel__06"}, {"id": "g007__crayon__07", "group": "crayon", "style": "crayon", "file": "imgs/g007__crayon__07.jpg", "label": "g007__crayon__07"}, {"id": "g057__crayon__08", "group": "crayon", "style": "crayon", "file": "imgs/g057__crayon__08.jpg", "label": "g057__crayon__08"}, {"id": "g057__crayon__06", "group": "crayon", "style": "crayon", "file": "imgs/g057__crayon__06.jpg", "label": "g057__crayon__06"}, {"id": "g032__crayon__09", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__09.jpg", "label": "g032__crayon__09"}, {"id": "g049__chalkpastel__05", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g049__chalkpastel__05.jpg", "label": "g049__chalkpastel__05"}, {"id": "g024__chalkpastel__09", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__09.jpg", "label": "g024__chalkpastel__09"}, {"id": "g032__crayon__05", "group": "crayon", "style": "crayon", "file": "imgs/g032__crayon__05.jpg", "label": "g032__crayon__05"}, {"id": "g082__crayon__05", "group": "crayon", "style": "crayon", "file": "imgs/g082__crayon__05.jpg", "label": "g082__crayon__05"}, {"id": "g099__chalkpastel__08", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__08.jpg", "label": "g099__chalkpastel__08"}, {"id": "g057__crayon__01", "group": "crayon", "style": "crayon", "file": "imgs/g057__crayon__01.jpg", "label": "g057__crayon__01"}, {"id": "g074__chalkpastel__02", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g074__chalkpastel__02.jpg", "label": "g074__chalkpastel__02"}];
+const params = new URLSearchParams(location.search);
+const API = params.get("api") || (window.VOTE_API || null);
+const DEV_CODE = "moyu888";
+let DEV = localStorage.getItem("moyu_dev")==="1";
+if(params.get("dev")===DEV_CODE){ DEV=true; localStorage.setItem("moyu_dev","1"); }
+let voter = localStorage.getItem("moyu_voter") || "";
+let decisions = JSON.parse(localStorage.getItem("moyu_swipe_decisions_v1") || "{}");
+let remoteReviewed = new Set();
+let deck = [];
+let current = null;
+let busy = false;
+let syncing = false;
+let startX = 0, startY = 0, dragging = false;
+const preloaded = new Set();
+function $(id){ return document.getElementById(id); }
+function save(){ localStorage.setItem("moyu_swipe_decisions_v1", JSON.stringify(decisions)); }
+function modeText(){ $("mode").textContent = DEV && API ? "已解鎖（即時同步）" : (DEV ? "已解鎖（離線）" : "本機預覽"); }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function decidedIds(){ return new Set([...Object.keys(decisions), ...remoteReviewed]); }
+function buildDeck(){
+  const decided = decidedIds();
+  deck = shuffle(ITEMS.filter(x=>!decided.has(x.id) && (!current || x.id!==current.id)));
+}
+function counts(){
+  const vals = Object.values(decisions);
+  $("keepN").textContent = vals.filter(x=>x.decision==="keep").length;
+  $("refN").textContent = vals.filter(x=>x.decision==="reference").length;
+  $("killN").textContent = vals.filter(x=>x.decision==="kill").length;
+  $("remain").textContent = deck.length + (current ? 1 : 0);
+  $("who").textContent = voter ? ("嗨 " + voter) : "";
+}
+function preload(item){
+  if(!item || preloaded.has(item.file)) return;
+  preloaded.add(item.file);
+  const img = new Image();
+  img.decoding = "async";
+  img.src = item.file;
+  if(preloaded.size>60){
+    const first = preloaded.values().next().value;
+    preloaded.delete(first);
+  }
+}
+function preloadNext(){ deck.slice(0,3).forEach(preload); }
+function resetCard(){
+  const card=$("card");
+  card.style.transition="transform .16s ease,border-color .16s ease,opacity .16s ease";
+  card.style.transform="";
+  card.style.opacity="1";
+  card.style.borderColor="var(--line)";
+  $("killStamp").style.opacity=0;
+  $("keepStamp").style.opacity=0;
+  $("refStamp").style.opacity=0;
+}
+function render(){
+  resetCard();
+  if(!current){
+    $("card").style.display="none";
+    $("empty").classList.add("show");
+    counts();
+    return;
+  }
+  $("card").style.display="flex";
+  $("empty").classList.remove("show");
+  $("img").src=current.file;
+  $("label").textContent=current.label;
+  $("style").textContent=current.style;
+  counts();
+  preloadNext();
+}
+function nextCard(){
+  current = deck.shift() || null;
+  $("refNoteInput").value="";
+  render();
+}
+async function postDecision(rec){
+  if(!(API && DEV)) return;
+  try{
+    await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(rec)});
+  }catch(e){}
+}
+function finalizeDecision(type, note){
+  if(!current || busy) return;
+  busy = true;
+  const item = current;
+  decisions[item.id] = {decision:type, note:note||"", ts:Date.now(), style:item.style};
+  save();
+  let dx=0, dy=0, rot=0;
+  if(type==="keep"){ dx=window.innerWidth; rot=18; }
+  else if(type==="kill"){ dx=-window.innerWidth; rot=-18; }
+  else { dy=-window.innerHeight; }
+  $("card").style.transition="transform .2s ease,opacity .2s ease";
+  $("card").style.transform="translate("+dx+"px,"+dy+"px) rotate("+rot+"deg)";
+  $("card").style.opacity="0";
+  postDecision({type, voter, ts:Date.now(), image:item.id, pair:[item.id, note||""], source:"swipe"});
+  setTimeout(()=>{ busy=false; nextCard(); }, 210);
+}
+function decide(decision){
+  if(decision==="reference"){ markReference(); return; }
+  finalizeDecision(decision==="keep"?"keep":"kill", "");
+}
+function markReference(){
+  if(!current || busy) return;
+  finalizeDecision("reference", $("refNoteInput").value.trim());
+}
+function dragMove(dx, dy){
+  const card=$("card");
+  card.style.transition="none";
+  if(Math.abs(dy) > Math.abs(dx) && dy < 0){
+    card.style.transform="translate(0,"+dy+"px)";
+    const ratio=Math.min(1, Math.abs(dy)/120);
+    $("refStamp").style.opacity = ratio;
+    $("killStamp").style.opacity = 0;
+    $("keepStamp").style.opacity = 0;
+    card.style.borderColor = "var(--ref)";
+  } else {
+    const rot=Math.max(-18, Math.min(18, dx/12));
+    card.style.transform="translate("+dx+"px,0) rotate("+rot+"deg)";
+    const ratio=Math.min(1, Math.abs(dx)/120);
+    $("killStamp").style.opacity = dx<0 ? ratio : 0;
+    $("keepStamp").style.opacity = dx>0 ? ratio : 0;
+    $("refStamp").style.opacity = 0;
+    card.style.borderColor = dx>0 ? "var(--keep)" : (dx<0 ? "var(--kill)" : "var(--line)");
+  }
+}
+function attachGestures(){
+  const card=$("card");
+  card.addEventListener("pointerdown", e=>{
+    if(!current || busy) return;
+    dragging=true; startX=e.clientX; startY=e.clientY;
+    card.setPointerCapture(e.pointerId);
+  });
+  card.addEventListener("pointermove", e=>{
+    if(!dragging || busy) return;
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    e.preventDefault();
+    dragMove(dx, dy);
+  });
+  card.addEventListener("pointerup", e=>{
+    if(!dragging || busy) return;
+    dragging=false;
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    if(Math.abs(dy) > Math.abs(dx) && dy < -90){ markReference(); return; }
+    if(dx>90) finalizeDecision("keep","");
+    else if(dx<-90) finalizeDecision("kill","");
+    else resetCard();
+  });
+  card.addEventListener("pointercancel", ()=>{ dragging=false; resetCard(); });
+}
+async function loadRemote(){
+  if(!(API && DEV)) return;
+  try{
+    const r=await fetch(API);
+    const rows=await r.json();
+    if(Array.isArray(rows)){
+      rows.forEach(v=>{
+        if(v && v.image && (v.type==="kill" || v.type==="keep" || v.type==="reference" || v.type==="candidate")) remoteReviewed.add(v.image);
+      });
+    }
+  }catch(e){}
+}
+async function loadStats(){
+  try{
+    const r=await fetch("stats.json?t="+Date.now());
+    const s=await r.json();
+    (s.vetoedOut||[]).forEach(id=>remoteReviewed.add(id));
+  }catch(e){}
+}
+function askName(){ $("nameInput").value=voter; $("nameModal").classList.add("show"); }
+$("nameOk").onclick=()=>{ voter=($("nameInput").value.trim())||("匿名"+Math.floor(Math.random()*1000)); localStorage.setItem("moyu_voter",voter); $("nameModal").classList.remove("show"); counts(); };
+$("killBtn").onclick=()=>decide("kill");
+$("keepBtn").onclick=()=>decide("keep");
+$("refBtn").onclick=()=>markReference();
+$("refNoteInput").addEventListener("keydown", e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==="Enter"){ e.preventDefault(); markReference(); }
+});
+async function refreshFromRemote(){
+  if(syncing) return;
+  syncing=true; const btn=$("devBtn"); const old=btn.textContent; btn.textContent="同步中...";
+  await loadRemote();
+  buildDeck();
+  if(current && decidedIds().has(current.id)) current=null;
+  if(!current) nextCard(); else counts();
+  syncing=false; btn.textContent=DEV?"重新整理":"解鎖";
+}
+$("devBtn").onclick=async()=>{
+  if(DEV){ await refreshFromRemote(); return; }
+  const c=prompt("輸入序號（解鎖後滑動會即時同步到候選池，且看得到所有裝置的最新結果）：");
+  if(c===DEV_CODE){
+    DEV=true; localStorage.setItem("moyu_dev","1"); modeText();
+    $("devBtn").textContent="重新整理";
+    await refreshFromRemote();
+    alert("已解鎖。之後滑動會即時同步，候選池也會自動排除已淘汰的圖。");
+  }
+  else if(c!==null){ alert("序號錯誤"); }
+};
+$("exportBtn").onclick=()=>{
+  const keepIds=Object.entries(decisions).filter(([,v])=>v.decision==="keep").map(([id])=>id);
+  $("exportTitle").textContent="候選池 ID";
+  $("exportNote").textContent="本機候選 "+keepIds.length+" 張。";
+  $("exportText").value=keepIds.join("\n");
+  $("exportModal").classList.add("show");
+};
+$("exportRefBtn").onclick=()=>{
+  const refs=Object.entries(decisions).filter(([,v])=>v.decision==="reference");
+  $("exportTitle").textContent="留作參考的設計建議";
+  $("exportNote").textContent="共 "+refs.length+" 張。格式：圖片id — 畫風 — 你的建議";
+  $("exportText").value=refs.map(([id,v])=>id+" — "+v.style+" — "+(v.note||"（無附註）")).join("\n");
+  $("exportModal").classList.add("show");
+};
+$("copyExport").onclick=async()=>{
+  const text=$("exportText").value;
+  try{ await navigator.clipboard.writeText(text); alert("已複製"); }
+  catch(e){ $("exportText").select(); document.execCommand("copy"); alert("已複製"); }
+};
+$("closeExport").onclick=()=>$("exportModal").classList.remove("show");
+document.addEventListener("keydown", e=>{
+  const tag = document.activeElement && document.activeElement.tagName;
+  if(tag==="TEXTAREA" || tag==="INPUT") return;
+  if(e.key==="ArrowLeft") finalizeDecision("kill","");
+  if(e.key==="ArrowRight") finalizeDecision("keep","");
+  if(e.key==="ArrowUp"){ e.preventDefault(); markReference(); }
+});
+(async()=>{
+  modeText();
+  $("devBtn").textContent = DEV ? "重新整理" : "解鎖";
+  await loadStats();
+  await loadRemote();
+  buildDeck();
+  attachGestures();
+  nextCard();
+  if(!voter) askName();
+  if(API && DEV){
+    setInterval(async()=>{
+      if(busy || syncing) return;
+      await loadRemote();
+      buildDeck();
+      if(current && decidedIds().has(current.id)){ current=null; nextCard(); } else { counts(); }
+    }, 25000);
+  }
+})();
+</script>
+</body>
+</html>
