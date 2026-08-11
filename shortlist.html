@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>畫風決選：12 強二選一</title>
+<style>
+  :root{--bg:#f5f2ea;--card:#fffdf8;--ink:#2b2b2b;--muted:#8a8275;--line:#e3ddd0;--accent:#c98a3a;--win:#3a9d6b;--veto:#c25b52}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+  header{padding:9px 14px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  header h1{font-size:14px;margin:0;flex:1;line-height:1.2}
+  .badge{font-size:10px;padding:1px 7px;border-radius:10px;background:#efe6d6;color:#9a7430}
+  .prog{height:6px;background:#ece6d8}
+  .prog>i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+  .q{text-align:center;font-size:14px;color:var(--muted);padding:8px 12px 2px}
+  main{flex:1;display:flex;flex-direction:column;gap:10px;padding:10px 12px;max-width:880px;margin:0 auto;width:100%;min-height:0}
+  .pair{display:flex;gap:10px;flex:1;min-height:0}
+  @media(max-width:560px){.pair{flex-direction:column}}
+  .pick{flex:1;background:var(--card);border:2px solid var(--line);border-radius:16px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:8px;cursor:pointer;transition:transform .08s,border-color .12s;position:relative;min-height:0}
+  .pick:active{transform:scale(.97);border-color:var(--accent)}
+  .pick img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;flex:1;min-height:0;transition:opacity .12s}
+  .cardfoot{margin-top:7px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .pickhint{font-size:12px;color:var(--accent);font-weight:600}
+  .vetobtn{border:1.5px solid var(--veto);background:#fff;color:var(--veto);font-size:12px;font-weight:600;
+    padding:5px 12px;border-radius:16px;cursor:pointer;font-family:inherit}
+  .vetobtn:active{background:var(--veto);color:#fff}
+  .reveal{position:absolute;inset:0;background:rgba(255,253,248,.92);border-radius:14px;display:none;flex-direction:column;
+    align-items:center;justify-content:center;font-size:15px;font-weight:700;text-align:center;padding:10px}
+  .reveal.show{display:flex}
+  .reveal .big{font-size:30px;color:var(--accent)}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn{padding:8px 16px;border:1px solid var(--line);border-radius:24px;background:var(--card);font-size:13px;cursor:pointer;font-family:inherit}
+  .btn:active{background:#efe9dd}
+  footer{padding:7px 14px;background:var(--card);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:12px;color:var(--muted)}
+  footer .link{color:var(--accent);cursor:pointer;text-decoration:underline}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:30}
+  .modal.show{display:flex}
+  .box{background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow:auto;text-align:center}
+  .box h2{margin:0 0 6px;font-size:18px}
+  .box p{font-size:13px;color:var(--muted);margin:6px 0 12px}
+  .box input{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);width:100%;margin-top:12px;padding:12px}
+  .champ{display:flex;gap:12px;align-items:center;text-align:left;background:#fbf6ea;border-radius:12px;padding:10px;margin:8px 0}
+  .champ img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line)}
+  .champ .t{font-size:13px}
+  .champ .t b{font-size:15px}
+  .stat-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 2px;border-bottom:1px solid var(--line)}
+  .rank{list-style:none;margin:8px 0;padding:0}
+  .rank li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
+  .rank img{width:44px;height:44px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid var(--line)}
+  .rank .elo{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+  @media(max-width:560px){
+    header{padding:8px 10px} header h1{font-size:13px}
+    .q{font-size:13px;padding:7px 10px 1px}
+    main{gap:8px;padding:8px 10px}
+    .pair{gap:8px}
+    .pick{padding:6px;border-radius:14px}
+    .cardfoot{margin-top:5px;gap:6px}
+    .pickhint{font-size:11px}
+    .vetobtn{font-size:11px;padding:5px 9px}
+    .btn{flex:1;min-width:88px;min-height:38px;padding:8px 10px}
+    footer{padding:6px 10px;font-size:11px}
+  }
+</style>
+<script>window.VOTE_API="https://script.google.com/macros/s/AKfycbxCHA8Yzc-FcNcVb67LfwqMgn-aukCa3TyIvTbM-UdhgMSZmBwqYj9Q0XexHvoDStpf/exec";</script>
+</head>
+<body>
+<header>
+  <h1>畫風決選：12 強二選一 🏁</h1>
+  <span class="badge" id="mode">本機</span>
+</header>
+<div class="prog"><i id="progbar"></i></div>
+<div class="q" id="q">哪一隻你比較想養 / 想摸頭？（點圖選）</div>
+<main>
+  <div class="pair">
+    <div class="pick" id="pickL">
+      <img id="imgL" alt="" decoding="async" fetchpriority="high">
+      <div class="cardfoot"><span class="pickhint">👆 這隻我喜歡</span><button class="vetobtn" data-side="L">🥚 太醜，淘汰</button></div>
+      <div class="reveal" id="revL"></div>
+    </div>
+    <div class="pick" id="pickR">
+      <img id="imgR" alt="" decoding="async" fetchpriority="high">
+      <div class="cardfoot"><span class="pickhint">👆 這隻我喜歡</span><button class="vetobtn" data-side="R">🥚 太醜，淘汰</button></div>
+      <div class="reveal" id="revR"></div>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="btn" id="tie">都喜歡</button>
+    <button class="btn" id="skip">換一組 ⏭</button>
+    <button class="btn" id="resultsBtn">我的結果</button>
+  </div>
+</main>
+<footer>
+  <span id="who"></span><span style="flex:1"></span>
+  <a class="link" href="swipe.html">滑卡篩圖</a>
+  <a class="link" href="quotes.html">語錄評分</a>
+  <a class="link" href="submit.html">投稿語錄</a>
+  <span class="link" id="changeName">改名</span>
+  <span class="link" id="rankBtn">總排行</span>
+  <span class="link" id="devBtn">開發者</span>
+  <span class="link" id="killExport" style="display:none">匯出永不錄用</span>
+</footer>
+
+<div class="modal" id="nameModal">
+  <div class="box">
+    <h2>幫摸魚選吉祥物 🎣</h2>
+    <p>每次出兩隻，點你比較喜歡的（想養／想摸頭的直覺）。覺得某隻太醜，按右上 ✕ 淘汰牠——2 個人嫌就會被踢掉。選滿 20 隻看你的「審美報告」！</p>
+    <input id="nameInput" placeholder="你的暱稱" maxlength="20">
+    <button class="btn primary" id="nameOk">開始選</button>
+  </div>
+</div>
+
+<div class="modal" id="resultModal">
+  <div class="box">
+    <h2>你的摸魚審美報告 📋</h2>
+    <div id="champBox"></div>
+    <div id="reportStats"></div>
+    <button class="btn primary" id="shareBtn">分享我的結果 + 拉朋友來選</button>
+    <button class="btn" id="continueBtn" style="margin-top:8px">再選幾隻</button>
+  </div>
+</div>
+
+<div class="modal" id="rankModal">
+  <div class="box">
+    <h2>總排行 <span id="rankSub" style="font-size:12px;color:var(--muted)"></span></h2>
+    <ol class="rank" id="rankList"></ol>
+    <button class="btn primary" id="rankClose">關閉</button>
+  </div>
+</div>
+
+<script>
+const ITEMS = [{"id": "C_guofeng__10", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__10.jpg", "label": "C_guofeng__10"}, {"id": "C_guofeng__24", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__24.jpg", "label": "C_guofeng__24"}, {"id": "C_guofeng__44", "group": "guofeng", "style": "guofeng", "file": "imgs/C_guofeng__44.jpg", "label": "C_guofeng__44"}, {"id": "g007__crayon__10", "group": "crayon", "style": "crayon", "file": "imgs/g007__crayon__10.jpg", "label": "g007__crayon__10"}, {"id": "g015__copic__05", "group": "copic", "style": "copic", "file": "imgs/g015__copic__05.jpg", "label": "g015__copic__05"}, {"id": "g020__airbrush__08", "group": "airbrush", "style": "airbrush", "file": "imgs/g020__airbrush__08.jpg", "label": "g020__airbrush__08"}, {"id": "g024__chalkpastel__05", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g024__chalkpastel__05.jpg", "label": "g024__chalkpastel__05"}, {"id": "g045__airbrush__09", "group": "airbrush", "style": "airbrush", "file": "imgs/g045__airbrush__09.jpg", "label": "g045__airbrush__09"}, {"id": "g070__airbrush__03", "group": "airbrush", "style": "airbrush", "file": "imgs/g070__airbrush__03.jpg", "label": "g070__airbrush__03"}, {"id": "g074__chalkpastel__10", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g074__chalkpastel__10.jpg", "label": "g074__chalkpastel__10"}, {"id": "g099__chalkpastel__02", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__02.jpg", "label": "g099__chalkpastel__02"}, {"id": "g099__chalkpastel__06", "group": "chalkpastel", "style": "chalkpastel", "file": "imgs/g099__chalkpastel__06.jpg", "label": "g099__chalkpastel__06"}];
+const byId = Object.fromEntries(ITEMS.map(x=>[x.id,x]));
+const params = new URLSearchParams(location.search);
+const API = params.get("api") || (window.VOTE_API || null);
+const GOAL = 20;
+let voter = localStorage.getItem("moyu_voter") || "";
+let localVotes = JSON.parse(localStorage.getItem("moyu_pairwise_v2") || "[]");
+let myVetoes = new Set(JSON.parse(localStorage.getItem("moyu_myvetoes") || "[]"));
+let ownerKilled = new Set(JSON.parse(localStorage.getItem("moyu_ownerkilled") || "[]"));
+const DEV_CODE = "moyu888";
+let DEV = localStorage.getItem("moyu_dev")==="1";
+if(params.get("dev")===DEV_CODE){ DEV=true; localStorage.setItem("moyu_dev","1"); }
+let STATS = {perImage:{}, vetoedOut:[]};
+let remoteKilled = new Set();
+let pickCount = localVotes.filter(v=>!v.tie).length;
+let busy = false;
+let queuedPair = null;
+const preloaded = new Set();
+document.getElementById("mode").textContent = API ? "連線" : "本機";
+
+function saveLocal(){ localStorage.setItem("moyu_pairwise_v2", JSON.stringify(localVotes)); localStorage.setItem("moyu_myvetoes", JSON.stringify([...myVetoes])); localStorage.setItem("moyu_ownerkilled", JSON.stringify([...ownerKilled])); }
+function $(id){ return document.getElementById(id); }
+function refresh(){ $("who").textContent = voter?("嗨 "+voter):""; $("progbar").style.width=Math.min(100,pickCount/GOAL*100)+"%"; }
+
+async function loadStats(){
+  try{ const r=await fetch("stats.json?t="+Date.now()); const d=await r.json(); if(d&&d.perImage){ STATS=d; } }catch(e){}
+}
+
+// 即時讀後端 kill 紀錄（含 swipe.html 滑掉的）— 不靠 stats.json 快照，每次載入/輪詢都拿最新
+async function loadRemoteKilled(){
+  if(!API) return;
+  try{
+    const r=await fetch(API);
+    const rows=await r.json();
+    if(Array.isArray(rows)) rows.forEach(v=>{ if(v && v.image && v.type==="kill") remoteKilled.add(v.image); });
+  }catch(e){}
+}
+
+async function post(obj){
+  if(API){ try{ await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(obj)}); }catch(e){} }
+}
+
+// active pool: drop globally-vetoed (>=2 distinct)、即時後端 kill、我的本機淘汰
+function activePool(){
+  const out = new Set([...(STATS.vetoedOut||[]), ...remoteKilled, ...myVetoes, ...ownerKilled]);
+  return ITEMS.filter(x=>!out.has(x.id));
+}
+const seen = {}; ITEMS.forEach(x=>seen[x.id]=0);
+localVotes.forEach(v=>(v.pair||[]).forEach(id=>{ if(id in seen) seen[id]++; }));
+let lastPair=[], curL, curR;
+function pickItem(excl){
+  const pool=activePool().filter(x=>!excl.includes(x.id));
+  if(!pool.length) return ITEMS[Math.floor(Math.random()*ITEMS.length)];
+  const min=Math.min(...pool.map(x=>seen[x.id]));
+  const cand=pool.filter(x=>seen[x.id]<=min+1);
+  return cand[Math.floor(Math.random()*cand.length)];
+}
+function selectPair(excl){
+  const left=pickItem(excl);
+  return [left, pickItem([left.id,...excl])];
+}
+function preloadImage(item){
+  if(!item || preloaded.has(item.file)) return;
+  preloaded.add(item.file);
+  const img=new Image();
+  img.decoding="async";
+  img.src=item.file;
+  if(preloaded.size>80){
+    const first=preloaded.values().next().value;
+    preloaded.delete(first);
+  }
+}
+function queueNextPair(){
+  queuedPair=selectPair(lastPair);
+  queuedPair.forEach(preloadImage);
+}
+function nextPair(){
+  $("revL").classList.remove("show"); $("revR").classList.remove("show");
+  const pair=queuedPair || selectPair(lastPair);
+  queuedPair=null;
+  curL=pair[0]; curR=pair[1]; lastPair=[curL.id,curR.id];
+  $("imgL").src=curL.file; $("imgR").src=curR.file;
+  queueNextPair();
+}
+function winrate(id){ const s=STATS.perImage[id]; if(!s||!(s.w+s.l)) return null; return Math.round(s.w/(s.w+s.l)*100); }
+function showReveal(side,id){
+  const wr=winrate(id); const el=$(side==="L"?"revL":"revR");
+  let msg;
+  if(wr===null){ msg='<div class="big">👍</div>你的眼光<br>（還沒有大家的數據）'; }
+  else if(wr>=55){ msg='<div class="big">'+wr+'%</div>大家也愛這隻<br>你跟主流一致 👍'; }
+  else if(wr<=45){ msg='<div class="big">'+wr+'%</div>你是少數派 😏<br>獨到眼光'; }
+  else { msg='<div class="big">'+wr+'%</div>勢均力敵的一隻'; }
+  el.innerHTML=msg; el.classList.add("show");
+  setTimeout(()=>{ el.classList.remove("show"); busy=false; nextPair(); }, 720);
+}
+function recordPick(winner,loser){
+  if(busy) return;
+  busy=true;
+  pickCount++; const v={voter,ts:Date.now(),pair:[curL.id,curR.id],winner,loser};
+  v.pair.forEach(id=>seen[id]++); localVotes.push(v); saveLocal(); post(v); refresh();
+  queueNextPair();
+  showReveal(winner===curL.id?"L":"R", winner);
+  if(pickCount===GOAL) setTimeout(openResults, 1100);
+}
+function recordTie(){ if(busy) return; busy=true; const v={voter,ts:Date.now(),pair:[curL.id,curR.id],tie:true}; localVotes.push(v); saveLocal(); post(v); nextPair(); setTimeout(()=>busy=false,120); }
+function recordVeto(side){
+  if(busy) return;
+  busy=true;
+  const id=(side==="L"?curL:curR).id;
+  if(DEV){ ownerKilled.add(id); post({voter,ts:Date.now(),type:"kill",image:id}); }
+  else { myVetoes.add(id); post({voter,ts:Date.now(),type:"veto",image:id}); }
+  saveLocal(); lastPair=[]; nextPair(); setTimeout(()=>busy=false,120);
+}
+$("pickL").onclick=e=>{ if(e.target.classList.contains("vetobtn"))return; recordPick(curL.id,curR.id); };
+$("pickR").onclick=e=>{ if(e.target.classList.contains("vetobtn"))return; recordPick(curR.id,curL.id); };
+document.querySelectorAll(".vetobtn").forEach(b=>b.onclick=e=>{ e.stopPropagation(); recordVeto(b.dataset.side); });
+$("tie").onclick=recordTie;
+$("skip").onclick=()=>{ if(busy) return; busy=true; lastPair=[]; queuedPair=null; nextPair(); setTimeout(()=>busy=false,120); };
+$("resultsBtn").onclick=openResults;
+
+// personal report
+function myElo(){
+  const R={}; ITEMS.forEach(x=>R[x.id]=1000); const g={}; ITEMS.forEach(x=>g[x.id]=0);
+  localVotes.forEach(v=>{ if(v.tie||!v.winner)return; const a=v.winner,b=v.loser; if(!(a in R)||!(b in R))return;
+    const ea=1/(1+Math.pow(10,(R[b]-R[a])/400)); R[a]+=24*(1-ea); R[b]+=24*(0-(1-ea)); g[a]++; g[b]++; });
+  return ITEMS.map(x=>({...x,elo:Math.round(R[x.id]),g:g[x.id]})).filter(x=>x.g>0).sort((a,b)=>b.elo-a.elo);
+}
+function openResults(){
+  const rank=myElo(); if(!rank.length){ alert("先選個幾隻再看結果～"); return; }
+  const champ=rank[0];
+  $("champBox").innerHTML='<div class="champ"><img src="'+champ.file+'"><div class="t">你心中的冠軍<br><b>'+champ.label+'</b><br><span style="color:var(--muted)">畫風：'+champ.style+'</span></div></div>';
+  // preferred style = most frequent style among my winners
+  const styleCnt={}; localVotes.forEach(v=>{ if(v.winner&&byId[v.winner]){ const s=byId[v.winner].style; styleCnt[s]=(styleCnt[s]||0)+1; } });
+  const prefStyle=Object.entries(styleCnt).sort((a,b)=>b[1]-a[1])[0];
+  // alignment with crowd
+  let aligned=0,total=0; localVotes.forEach(v=>{ if(!v.winner)return; const wr=winrate(v.winner); if(wr!==null){ total++; if(wr>=50)aligned++; } });
+  const align = total? Math.round(aligned/total*100) : null;
+  $("reportStats").innerHTML =
+    '<div class="stat-row"><span>你投了</span><b>'+localVotes.filter(v=>v.winner).length+' 票</b></div>'+
+    (prefStyle?'<div class="stat-row"><span>你最偏好的畫風</span><b>'+prefStyle[0]+'</b></div>':'')+
+    (align!==null?'<div class="stat-row"><span>跟大家的契合度</span><b>'+align+'%</b></div>':'<div class="stat-row"><span>契合度</span><b>等更多人投票</b></div>')+
+    '<div class="stat-row"><span>你淘汰了</span><b>'+(myVetoes.size+ownerKilled.size)+' 隻太醜的</b></div>';
+  $("resultModal").classList.add("show");
+}
+$("continueBtn").onclick=()=>$("resultModal").classList.remove("show");
+$("shareBtn").onclick=async()=>{
+  const rank=myElo(); const champ=rank[0];
+  const url=location.origin+location.pathname;
+  const text="我幫摸魚選了一隻代言魚，我的冠軍是「"+(champ?champ.label:"???")+"」🐟 換你選選看你的是哪隻：";
+  try{ if(navigator.share){ await navigator.share({title:"摸魚比稿",text,url}); return; } }catch(e){}
+  try{ await navigator.clipboard.writeText(text+" "+url); alert("已複製分享文字+連結，貼到群組拉朋友來選！"); }catch(e){ prompt("複製這段分享：", text+" "+url); }
+};
+
+// global ranking (from stats.json)
+$("rankBtn").onclick=()=>{
+  const rank=ITEMS.map(x=>{ const s=STATS.perImage[x.id]||{w:0,l:0}; const n=s.w+s.l; return {...x,n,wr:n?s.w/n:0}; })
+    .filter(x=>x.n>0).sort((a,b)=>b.wr-a.wr).slice(0,30);
+  $("rankSub").textContent = rank.length? "（依大家投票勝率）" : "（還沒有彙整數據）";
+  $("rankList").innerHTML = rank.map((x,i)=>'<li><b style="width:20px">'+(i+1)+'</b><img src="'+x.file+'"><span>'+x.label+'<br><span style="color:var(--muted)">'+x.style+' · '+x.n+'場</span></span><span class="elo">'+Math.round(x.wr*100)+'%</span></li>').join("") || '<p style="color:var(--muted)">等我彙整大家的票後更新。</p>';
+  $("rankModal").classList.add("show");
+};
+$("rankClose").onclick=()=>$("rankModal").classList.remove("show");
+
+// name
+function askName(){ $("nameInput").value=voter; $("nameModal").classList.add("show"); }
+$("nameOk").onclick=()=>{ voter=($("nameInput").value.trim())||("匿名"+Math.floor(Math.random()*1000)); localStorage.setItem("moyu_voter",voter); $("nameModal").classList.remove("show"); refresh(); };
+$("changeName").onclick=askName;
+
+// boot
+function setupDev(){
+  document.querySelectorAll(".vetobtn").forEach(b=> b.textContent = DEV ? "🥚 太醜了，直接蛋雕永不錄用" : "🥚 太醜，淘汰");
+  document.getElementById("mode").textContent = DEV ? "開發者" : (API ? "連線" : "本機");
+  document.getElementById("killExport").style.display = DEV ? "" : "none";
+}
+document.getElementById("devBtn").onclick=()=>{
+  if(DEV){ if(confirm("關閉開發者模式？")){ DEV=false; localStorage.setItem("moyu_dev","0"); setupDev(); } return; }
+  const c=prompt("輸入開發者序號（解鎖一票否決·永不錄用）：");
+  if(c===DEV_CODE){ DEV=true; localStorage.setItem("moyu_dev","1"); setupDev(); nextPair(); alert("開發者模式開啟。淘汰鈕＝一票永久移出候選池。"); }
+  else if(c!==null){ alert("序號錯誤"); }
+};
+document.getElementById("killExport").onclick=()=>{
+  const ids=[...ownerKilled]; if(!ids.length){ alert("還沒淘汰任何一張"); return; }
+  navigator.clipboard.writeText(ids.join("\n")).then(()=>alert("已複製 "+ids.length+" 個永不錄用 id，貼回給我，我從候選池永久移除")).catch(()=>prompt("複製這些 id：",ids.join("\n")));
+};
+(async()=>{
+  await loadStats(); await loadRemoteKilled();
+  setupDev(); refresh(); nextPair(); if(!voter) askName();
+  if(API){
+    setInterval(async()=>{
+      await loadRemoteKilled();
+      if(remoteKilled.has(curL.id) || remoteKilled.has(curR.id)) nextPair();
+    }, 25000);
+  }
+})();
+</script>
+</body>
+</html>
