@@ -57,7 +57,7 @@
     footer{padding:6px 10px;font-size:11px}
   }
 </style>
-<script>window.VOTE_API="https://script.google.com/macros/s/AKfycbxCHA8Yzc-FcNcVb67LfwqMgn-aukCa3TyIvTbM-UdhgMSZmBwqYj9Q0XexHvoDStpf/exec";</script>
+<script>window.ROUND_SINCE=1786826720822;window.VOTE_API="https://script.google.com/macros/s/AKfycbxCHA8Yzc-FcNcVb67LfwqMgn-aukCa3TyIvTbM-UdhgMSZmBwqYj9Q0XexHvoDStpf/exec";</script>
 </head>
 <body>
 <header>
@@ -130,6 +130,10 @@ let DEV = localStorage.getItem("moyu_dev")==="1";
 if(params.get("dev")===DEV_CODE){ DEV=true; localStorage.setItem("moyu_dev","1"); }
 let voter = localStorage.getItem("moyu_voter") || "";
 let decisions = JSON.parse(localStorage.getItem("moyu_swipe_decisions_v1") || "{}");
+// ROUND_SINCE（epoch ms，builder 注入）：此刻之前對本頁 id 的遠端決定一律忽略 → 整輪重置不必動試算表
+const ROUND_SINCE = Number(window.ROUND_SINCE||0);
+// ?reset=1：清掉本機對「本頁 id」的決定（不動其他頁），然後把參數拿掉避免重新整理又清一次
+if(params.get("reset")){ ITEMS.forEach(it=>{ delete decisions[it.id]; }); localStorage.setItem("moyu_swipe_decisions_v1", JSON.stringify(decisions)); history.replaceState(null,"",location.pathname); }
 let remoteReviewed = new Set();
 let deck = [];
 let current = null;
@@ -278,6 +282,7 @@ async function loadRemote(){
     const rows=await r.json();
     if(Array.isArray(rows)){
       rows.forEach(v=>{
+        if(ROUND_SINCE && Number(v.ts||0) < ROUND_SINCE) return;
         if(v && v.image && (v.type==="kill" || v.type==="keep" || v.type==="reference" || v.type==="candidate")) remoteReviewed.add(v.image);
       });
     }
