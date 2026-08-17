@@ -1,0 +1,82 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>魚圖畫風測試：釣起來看到哪張最有感</title><style>
+:root{--bg:#faf7f1;--ink:#2b2622;--mut:#7a6f63;--line:#eadfcd;--pick:#2f8f5b}
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:14px}
+h1{font-size:20px;margin:0 0 4px}.sub{color:var(--mut);font-size:13px;line-height:1.5;margin-bottom:10px}
+.bar{position:sticky;top:0;background:rgba(250,247,241,.96);backdrop-filter:blur(4px);padding:8px 0;border-bottom:1px solid var(--line);z-index:5;font-size:13px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.bar b{font-size:15px}.bar .st{padding:2px 8px;border-radius:10px;background:#efe6d6}
+.fish{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin:12px 0}
+.fish .h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.fish .h b{font-size:18px}.fish .h .r{font-size:11px;padding:1px 7px;border-radius:10px;background:#efe6d6;color:#6b5a48}
+.fish .h .d{color:var(--mut);font-size:13px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+@media(max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{border:3px solid transparent;border-radius:10px;padding:4px;cursor:pointer;background:#fff;text-align:center;position:relative}
+.tile img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block;background:#eee}
+.tile .l{font-size:12px;color:var(--mut);margin-top:3px}
+.tile.picked{border-color:var(--pick)}.tile.picked .l{color:var(--pick);font-weight:700}
+.tile .zoom{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.35);color:#fff;font-size:11px;border-radius:6px;padding:1px 6px}
+.none{display:inline-block;margin-top:8px;font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:3px 10px;cursor:pointer}
+.none.picked{background:#eee;color:#333;font-weight:700}
+.fish.wip{opacity:.55}.fish.wip .tile{cursor:default}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:9}.modal.show{display:flex}.modal img{max-width:96vw;max-height:92vh;border-radius:8px}
+.name{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:10}.name.show{display:flex}.name div{background:#fff;padding:16px;border-radius:12px;width:min(90vw,340px)}
+.name input{width:100%;padding:8px;font-size:15px;margin:8px 0}.name button{padding:8px 14px;font-size:14px}
+</style>
+<script>window.VOTE_API="https://script.google.com/macros/s/AKfycbxCHA8Yzc-FcNcVb67LfwqMgn-aukCa3TyIvTbM-UdhgMSZmBwqYj9Q0XexHvoDStpf/exec";</script></head><body>
+<h1>魚圖畫風測試：釣起來看到哪張最有感</h1>
+<div class="sub">每條魚一列：「現在（v1）」＋ 三個候選畫風（位置每列隨機）。<b>只問一件事：釣到這條、跳出這張圖的那一秒，哪張讓你有感（想截圖丟群組／想再釣一竿）？</b>
+點圖選、可改；都沒感就按「都不行」。「放大」看原圖。選擇會即時同步，Claude 回拉統計哪個畫風贏、哪些魚全軍覆沒。</div>
+<div class="bar"><span>可選 <b id="ready">0</b></span><span>已選 <b id="done">0</b></span><span id="tally"></span></div>
+<div id="list"></div>
+<div class="modal" id="modal"><img id="mimg" src="" alt=""></div>
+<div class="name" id="name"><div><b>你是誰？</b><input id="nameInput" placeholder="暱稱（例：鹿）"><br><button id="nameOk">開始</button></div></div>
+<script>
+const API=window.VOTE_API||null;
+const ITEMS=[{"id": "gg_xie_hermit", "name": "GG蟹", "rarity": "common", "rarity_zh": "普通", "desc": "GG。", "tiles": [], "ready": false}, {"id": "taiwan_tai", "name": "台灣鯛", "rarity": "common", "rarity_zh": "普通", "desc": "我明明是吳郭魚。", "tiles": [{"id": "v1__taiwan_tai", "file": "imgs_fishv2/v1__taiwan_tai.jpg", "label": "現在（v1）", "style": "v1"}, {"id": "fishv2__airbrush__taiwan_tai", "file": "imgs_fishv2/fishv2__airbrush__taiwan_tai.jpg", "label": "噴槍", "style": "airbrush"}], "ready": false}, {"id": "bao_bao_seal", "name": "抱豹", "rarity": "common", "rarity_zh": "普通", "desc": "可以給我一個抱豹嗎。", "tiles": [], "ready": false}, {"id": "zhaozhan", "name": "招展", "rarity": "common", "rarity_zh": "普通", "desc": "這才叫花枝招展。", "tiles": [{"id": "v1__zhaozhan", "file": "imgs_fishv2/v1__zhaozhan.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "octopus_meatball", "name": "章魚小丸子", "rarity": "common", "rarity_zh": "普通", "desc": "站在攤子前走不動。", "tiles": [{"id": "v1__octopus_meatball", "file": "imgs_fishv2/v1__octopus_meatball.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "kekeke", "name": "蚵蚵", "rarity": "common", "rarity_zh": "普通", "desc": "我什麼沒看過。", "tiles": [{"id": "v1__kekeke", "file": "imgs_fishv2/v1__kekeke.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "ha_question", "name": "蛤？", "rarity": "common", "rarity_zh": "普通", "desc": "蛤？", "tiles": [{"id": "v1__ha_question", "file": "imgs_fishv2/v1__ha_question.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "keke", "name": "蝌蝌", "rarity": "common", "rarity_zh": "普通", "desc": "ㄎㄎ。", "tiles": [{"id": "v1__keke", "file": "imgs_fishv2/v1__keke.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "xiami_what", "name": "蝦咪", "rarity": "common", "rarity_zh": "普通", "desc": "我沒聽清楚。", "tiles": [{"id": "v1__xiami_what", "file": "imgs_fishv2/v1__xiami_what.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "xiexie", "name": "蟹蟹", "rarity": "common", "rarity_zh": "普通", "desc": "就只會說謝謝。", "tiles": [{"id": "v1__xiexie", "file": "imgs_fishv2/v1__xiexie.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "guan_li_pishi", "name": "關鯉屁事", "rarity": "common", "rarity_zh": "普通", "desc": "關我屁事。", "tiles": [{"id": "fishv2__guofeng__guan_li_pishi", "file": "imgs_fishv2/fishv2__guofeng__guan_li_pishi.jpg", "label": "國風", "style": "guofeng"}, {"id": "v1__guan_li_pishi", "file": "imgs_fishv2/v1__guan_li_pishi.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "shark_sofa", "name": "鯊發", "rarity": "common", "rarity_zh": "普通", "desc": "鯊魚躺久了就是沙發。", "tiles": [{"id": "v1__shark_sofa", "file": "imgs_fishv2/v1__shark_sofa.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "kumo_picky", "name": "咕摸", "rarity": "uncommon", "rarity_zh": "少見", "desc": "殼頂那根毛是講究的證據。", "tiles": [{"id": "v1__kumo_picky", "file": "imgs_fishv2/v1__kumo_picky.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "squid_oily", "name": "好魷哦", "rarity": "uncommon", "rarity_zh": "少見", "desc": "10 隻觸手同時開 8 個 tab。", "tiles": [{"id": "v1__squid_oily", "file": "imgs_fishv2/v1__squid_oily.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "moo_tong", "name": "母湯喔", "rarity": "uncommon", "rarity_zh": "少見", "desc": "毋通啦。", "tiles": [{"id": "v1__moo_tong", "file": "imgs_fishv2/v1__moo_tong.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "puffer_hehe", "name": "河河河豚", "rarity": "uncommon", "rarity_zh": "少見", "desc": "笑什麼不告訴你。", "tiles": [{"id": "v1__puffer_hehe", "file": "imgs_fishv2/v1__puffer_hehe.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "sword_fall", "name": "一劍鍾情", "rarity": "rare", "rarity_zh": "稀有", "desc": "一見你就想刺。", "tiles": [{"id": "v1__sword_fall", "file": "imgs_fishv2/v1__sword_fall.jpg", "label": "現在（v1）", "style": "v1"}, {"id": "fishv2__airbrush__sword_fall", "file": "imgs_fishv2/fishv2__airbrush__sword_fall.jpg", "label": "噴槍", "style": "airbrush"}], "ready": false}, {"id": "mola_crash", "name": "翻翻", "rarity": "rare", "rarity_zh": "稀有", "desc": "本來想帥一下，結果先翻。", "tiles": [{"id": "v1__mola_crash", "file": "imgs_fishv2/v1__mola_crash.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "koi_tired", "name": "鯉累了嗎", "rarity": "rare", "rarity_zh": "稀有", "desc": "你累了嗎？我也累了。", "tiles": [{"id": "v1__koi_tired", "file": "imgs_fishv2/v1__koi_tired.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "unagi_love_you", "name": "鰻鰻喜歡你", "rarity": "rare", "rarity_zh": "稀有", "desc": "慢慢喜歡你。", "tiles": [{"id": "fishv2__airbrush__unagi_love_you", "file": "imgs_fishv2/fishv2__airbrush__unagi_love_you.jpg", "label": "噴槍", "style": "airbrush"}, {"id": "v1__unagi_love_you", "file": "imgs_fishv2/v1__unagi_love_you.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "salmon_mutual_end", "name": "同鮭魚盡", "rarity": "epic", "rarity_zh": "史詩", "desc": "我跟你一起擺爛。", "tiles": [{"id": "v1__salmon_mutual_end", "file": "imgs_fishv2/v1__salmon_mutual_end.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "tai_jay_chou", "name": "唉唷不錯這個鯛", "rarity": "epic", "rarity_zh": "史詩", "desc": "看著倒影就能爽一天。", "tiles": [{"id": "v1__tai_jay_chou", "file": "imgs_fishv2/v1__tai_jay_chou.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "eel_fake_boss", "name": "鱸鰻老大", "rarity": "epic", "rarity_zh": "史詩", "desc": "敢得罪我？", "tiles": [{"id": "v1__eel_fake_boss", "file": "imgs_fishv2/v1__eel_fake_boss.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "koi_kid", "name": "金鯉孩", "rarity": "legendary", "rarity_zh": "傳說", "desc": "金厲害的小朋友。", "tiles": [{"id": "v1__koi_kid", "file": "imgs_fishv2/v1__koi_kid.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "squid_ink_legendary", "name": "霓魷神墨", "rarity": "legendary", "rarity_zh": "傳說", "desc": "你有什麼資格。", "tiles": [{"id": "v1__squid_ink_legendary", "file": "imgs_fishv2/v1__squid_ink_legendary.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}, {"id": "unagi_king", "name": "鰻王", "rarity": "legendary", "rarity_zh": "傳說", "desc": "看起來很強，其實很鰻。", "tiles": [{"id": "v1__unagi_king", "file": "imgs_fishv2/v1__unagi_king.jpg", "label": "現在（v1）", "style": "v1"}], "ready": false}];
+let voter=localStorage.getItem("moyu_voter")||"";
+let picks=JSON.parse(localStorage.getItem("moyu_fishv2_picks")||"{}"); // fish_id -> tile id | "none"
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem("moyu_fishv2_picks",JSON.stringify(picks));}
+function counts(){
+  const c={};let n=0;
+  for(const [fid,t] of Object.entries(picks)){ n++; const it=ITEMS.find(i=>i.id===fid); if(!it) continue;
+    const st = t==="none"?"none":(it.tiles.find(x=>x.id===t)||{}).style; c[st]=(c[st]||0)+1; }
+  $("done").textContent=n+"/"+ITEMS.length;
+  const lab={v1:"現在v1",guofeng:"國風",chalkpastel:"粉彩",airbrush:"噴槍",none:"都不行"};
+  $("tally").innerHTML=Object.entries(lab).map(([k,v])=>`<span class="st">${v} <b>${c[k]||0}</b></span>`).join("");
+}
+async function post(fid,tile){
+  if(!API) return;
+  const it=ITEMS.find(i=>i.id===fid);
+  const rec={ts:Date.now(),voter,type:"fishv2_pick",image:fid,winner:tile,loser:"",pair:it.tiles.map(t=>t.id)};
+  try{ await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(rec)}); }catch(e){}
+}
+function pick(fid,tile){
+  picks[fid]=tile; save(); render(); counts(); post(fid,tile);
+}
+function render(){
+  const root=$("list"); root.innerHTML="";
+  for(const it of ITEMS){
+    const div=document.createElement("div"); div.className="fish";
+    const p=picks[it.id];
+    if(!it.ready) div.classList.add("wip");
+    div.innerHTML=`<div class="h"><b>${it.name}</b>${it.ready?"":"<span class='r' style='background:#ffe9c7'>生成中，先別選</span>"}<span class="r">${it.rarity_zh}</span><span class="d">「${it.desc}」</span></div>
+      <div class="tiles">${it.tiles.map(t=>`<div class="tile ${p===t.id?'picked':''}" data-f="${it.id}" data-t="${t.id}">
+        <img src="${t.file}" loading="lazy" alt=""><span class="zoom" data-src="${t.file}">放大</span><div class="l">${t.label}</div></div>`).join("")}</div>
+      <span class="none ${p==='none'?'picked':''}" data-f="${it.id}">都不行 / 這條魚哪張都沒感覺</span>`;
+    root.appendChild(div);
+  }
+  root.querySelectorAll(".tile").forEach(el=>el.addEventListener("click",e=>{
+    if(e.target.classList.contains("zoom")){ $("mimg").src=e.target.dataset.src; $("modal").classList.add("show"); return; }
+    const it=ITEMS.find(i=>i.id===el.dataset.f); if(!it.ready) return;
+    pick(el.dataset.f, el.dataset.t);
+  }));
+  root.querySelectorAll(".none").forEach(el=>el.addEventListener("click",()=>{ const it=ITEMS.find(i=>i.id===el.dataset.f); if(it.ready) pick(el.dataset.f,"none"); }));
+  const nr=ITEMS.filter(i=>i.ready).length; $("ready").textContent=nr+"/"+ITEMS.length;
+}
+$("modal").addEventListener("click",()=>$("modal").classList.remove("show"));
+$("nameOk").onclick=()=>{ voter=($("nameInput").value.trim())||("匿名"+Math.floor(Math.random()*1000)); localStorage.setItem("moyu_voter",voter); $("name").classList.remove("show"); };
+if(!voter){ $("name").classList.add("show"); }
+render(); counts();
+</script>
+</body></html>
